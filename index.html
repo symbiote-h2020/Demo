@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#000000">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>symbIoTe</title>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/leaflet.css">
+    <link rel="stylesheet" href="https://api.tiles.mapbox.com/mapbox.js/plugins/leaflet-markercluster/v0.4.0/MarkerCluster.css">
+    <link rel="stylesheet" href="https://api.tiles.mapbox.com/mapbox.js/plugins/leaflet-markercluster/v0.4.0/MarkerCluster.Default.css">
+    <link rel="stylesheet" href="https://api.tiles.mapbox.com/mapbox.js/plugins/leaflet-locatecontrol/v0.43.0/L.Control.Locate.css">
+    <link href="https://cdn.datatables.net/plug-ins/1.10.7/integration/bootstrap/3/dataTables.bootstrap.css" rel="stylesheet" />
+    <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.7/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/plug-ins/1.10.7/integration/bootstrap/3/dataTables.bootstrap.js"></script>
+    <link rel="stylesheet" href="assets/leaflet-groupedlayercontrol/leaflet.groupedlayercontrol.css">
+    <link rel="stylesheet" href="assets/css/app.css">
+
+
+    <link rel="apple-touch-icon" sizes="76x76" href="assets/img/favicon-76.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="assets/img/favicon-120.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="assets/img/favicon-152.png">
+    <link rel="icon" sizes="196x196" href="assets/img/favicon-196.png">
+    <link rel="icon" type="image/x-icon" href="assets/img/favicon.ico">
+
+    <link rel="stylesheet" href="assets/css/leaflet-locationpicker.css" />
+
+  </head>
+
+  <body>
+    <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <div class="navbar-icon-container">
+            <a href="#" class="navbar-icon pull-right visible-xs" id="nav-btn"><i class="fa fa-bars fa-lg white"></i></a>
+          </div>
+          <a class="navbar-brand" onclick="window.location.reload();">symbIoTe</a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li><a data-toggle="collapse" data-target=".navbar-collapse.in" id="searchTopBar"><i class="fa fa-search white"></i>&nbsp;&nbsp;Resources</a></li>
+          </ul>
+        </div><!--/.navbar-collapse -->
+      </div>
+    </div>
+
+    <div id="container">
+      <div id="map"></div>
+      <div id=mapButtons>
+        <input type="button" class="btn btn-secondary" onclick="expandMap();" id="expandButton" value="Expand Map"></input>
+      </div>
+      <div id="sensorsContent">
+        <div id="title">   <h2>Resources Found</h2> </div>
+        <div id="info">
+          <table class="table table-hover table-striped" cellspacing="0" id="sensorsTable">
+            <thead>
+              <tr id="tableHeader">
+                <th>Sensor</th>
+                <th>Longitude</th>
+                <th>Latitude</th>
+                <th>Altitude</th>
+                <th>Platform</th>
+                <th>Observed Properties</th>
+                <th>Owner</th>
+                <th>Location</th>
+              </tr>
+            </thead>
+            <tbody>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    <div id="loading">
+      <div class="loading-indicator">
+        <div class="progress progress-striped active">
+          <div class="progress-bar progress-bar-success progress-bar-full"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="searchModal" data-backdrop="static" data-keyboard="false">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h4 class="modal-title">Search</h4>
+          </div>
+          <div class="modal-body">
+
+            <form class="form-horizontal" name="searchForm">
+              <div class="form-group">
+                <label class="control-label col-sm-2">Platform name:</label>
+                <div class="col-sm-10" data-tip="Use * around the term to find partial matches. Ex.: *szm*">
+                    <input type="text" class="form-control" id="platform_name" placeholder="Ex.: openUwedat">
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="control-label col-sm-2">Name:</label>
+                <div class="col-sm-10">
+                  <input type="text" class="form-control" id="name" placeholder="Ex.: Sensor 12">
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="control-label col-sm-2">Owner:</label>
+                <div class="col-sm-10">
+                  <input type="text" class="form-control" id="owner" placeholder="Ex.: AIT">
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="control-label col-sm-2" for="owner">Observed property:</label>
+                <div class="col-sm-10">
+                  <input type="text" class="form-control" id="property" placeholder="Ex.: Temperature">
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="control-label col-sm-2">Location name:</label>
+                <div class="col-sm-10">
+                  <input type="text" class="form-control" id="location_name" placeholder="Ex.: Malta">
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="control-label col-sm-2">Location position:</label>
+                <div class="col-sm-10">
+                  <div class="form-group row">
+                    <div class="col-sm-3">
+                      <button type="button" id="geoloc" class="btn btn-secondary" val=""> Pick location on map</button>
+                    </div>
+                    <div class="col-sm-4">
+                        <input type="text" class="form-control" id="distance" placeholder="Radius(m) (ex.:10000)">
+                    </div>
+                    <div class="col-sm-4">
+                      <button type="button" class="btn btn-secondary" id="resetLocation"> Reset location</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </form>
+            <div id="errorFooter" style="display:none;text-align:center">
+              <p></p>
+              <label id="errorSearch" style="color:red;"></label>
+            </div>
+            <div class="modal-footer">
+              <button type="submit" class="btn btn-secondary" id="closeSearchModalButton" data-dismiss="modal">Close</button>
+              <button type="submit" class="btn btn-primary" id="searchModalButton">Search</button>
+            </div>
+          </div>
+
+        </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+
+    <div class="modal fade" id="infoSensorModal">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+          <h4 id="infoSensorModalTitle" class="modal-title"></h4>
+          </div>
+          <div class="modal-body">
+            <div class="table-responsive">
+            <table class="table table-hover table-striped" cellspacing="0" id="historicTable">
+              <thead>
+                <tr id="tableHeader">
+                  <!-- <th>Date</th>
+                  <th>Time</th> -->
+                  <th>Measurement</th>
+                  <th>Observed Property</th>
+                  <th>Unit</th>
+                  <th>Location name</th>
+                  <th>Latitude</th>
+                  <th>Longitude</th>
+                </tr>
+              </thead>
+              <tbody>
+              </tbody>
+            </table>
+          </div>
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          </div>
+
+        </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+
+    <div class="modal fade" id="errorModal">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+          <h4 class="modal-title">Something went wrong...</h4>
+          </div>
+          <div class="modal-body">
+            <label>It was not possible to get sensor historical data. Please try again.</label>
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          </div>
+
+        </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+
+    <div class="modal fade" id="legendModal" tabindex="-1" role="dialog">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            <h4 class="modal-title">Map Legend</h4>
+          </div>
+          <div class="modal-body">
+            <p>Map Legend goes here...</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+          </div>
+        </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/typeahead.js/0.10.5/typeahead.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/3.0.3/handlebars.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.1.1/list.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/leaflet.js"></script>
+    <script src="https://api.tiles.mapbox.com/mapbox.js/plugins/leaflet-markercluster/v0.4.0/leaflet.markercluster.js"></script>
+    <script src="https://api.tiles.mapbox.com/mapbox.js/plugins/leaflet-locatecontrol/v0.43.0/L.Control.Locate.min.js"></script>
+    <script src="assets/leaflet-groupedlayercontrol/leaflet.groupedlayercontrol.js"></script>
+    <script src="assets/js/app.js"></script>
+    <script src="assets/js/leaflet-locationpicker.js"></script>
+  </body>
+</html>
