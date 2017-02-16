@@ -11,8 +11,6 @@ var locations = Array();
 
 var search = Array();
 
-var test1 = ['http://161.53.19.121:8080/openiotRAP/Sensors?%24format=json', 'http://enviro5.ait.ac.at:8080/openUwedat-oData/DemoService.svc/Sensors?%24format=json'];
-
 var total = 0;
 
 var table;
@@ -146,10 +144,7 @@ function handleClickRow(e){
   var table = $('#historicTable').DataTable();
   var rows = table.rows().remove().draw();
 
-  // var row_url = "http://symbiote.man.poznan.pl/coreInterfaceApi/search/resource_url?resourceIds="+e.target.parentNode.id;
-
-  var row_url = "http://161.53.19.121:8101/rap/Sensor" + "('" + e.target.parentNode.id + "')"
-  console.log(row_url)
+  var row_url = "http://symbiote-dev.man.poznan.pl:8100/coreInterface/v1/resourceUrls?id=" + e.target.parentNode.id
 
   $("#loading").show();
 
@@ -159,76 +154,40 @@ function handleClickRow(e){
         dataType: "json",
         cache: false,
         success: function(data){
-          console.log(data)
-          var location = data['body']['location']['description']
-          var latitude = data['body']['location']['latitude']
-          var longitude = data['body']['location']['longitude']
 
-          var observedProperty = data['body']['obsValue']['obsProperty']['label']
-          var unit = data['body']['obsValue']['uom']['symbol']
-          var measurementValue = data['body']['obsValue']['value']
+          var name = e.target.parentNode.getAttribute('identification');
+          object_url = data[e.target.parentNode.id]
+          $.ajax({
+                url: object_url,
+                type: "GET",
+                dataType: "json",
+                cache: false,
+                success: function(data){
+                  var location = data['body']['location']['description']
+                  var latitude = data['body']['location']['latitude']
+                  var longitude = data['body']['location']['longitude']
 
-          var table = $('#historicTable').DataTable();
-          var row = table
-          .row.add( [measurementValue, observedProperty, unit, location, latitude, longitude] )
-          .draw()
-          .node();
+                  var observedProperty = data['body']['obsValue']['obsProperty']['label']
+                  var unit = data['body']['obsValue']['uom']['symbol']
+                  var measurementValue = data['body']['obsValue']['value']
 
-          $('#infoSensorModal').modal('show');
-          $('#infoSensorModalTitle').text(name  + " data")
-          $("#loading").hide();
+                  var table = $('#historicTable').DataTable();
+                  var row = table
+                  .row.add( [measurementValue, observedProperty, unit, location, latitude, longitude] )
+                  .draw()
+                  .node();
 
-          // Code for historic data (will be probably used)
-        //   var name = e.target.parentNode.getAttribute('identification');
-        //   console.log(name)
-        //   object_url = data[e.target.parentNode.id]+"/Observations";
-        //   $.ajax({
-        //         url: object_url,
-        //         type: "GET",
-        //         dataType: "json",
-        //         cache: false,
-        //         success: function(data){
-        //           // console.log(data)
-        //
-        //           for (var i = 0; i < data.value.length; i++){
-        //
-        //             var dateTime = data.value[i].ResultTime.replace("T", " ").replace("Z", " ");
-        //             var date = dateTime.split(" ")[0];
-        //             var time = dateTime.split(" ")[1];
-        //             var measurementValue = data.value[i].ObservationValue.Value;
-        //             var unit = data.value[i].ObservationValue.UnitOfMeasurement
-        //             var location = data.value[i].Location.name;
-        //             var latitude = data.value[i].Location.lat
-        //             var longitude = data.value[i].Location.lon
-        //             try{
-        //               var observedProperty = properties[data.value[i].ObservationValue.ObservedProperty.match(/\d+/)[0]];
-        //             }
-        //             catch(err){
-        //               var observedProperty = data.value[i].ObservationValue.ObservedProperty;
-        //             }
-        //
-        //             measurementValue = Math.round(measurementValue * 100)/100;
-        //
-        //             if (location == null)
-        //               location = "undefined";
-        //
-        //             var table = $('#historicTable').DataTable();
-        //             var row = table
-        //             .row.add( [ date, time, measurementValue, observedProperty, unit, location, latitude, longitude] )
-        //             .draw()
-        //             .node();
-        //           }
-        //           $('#infoSensorModal').modal('show');
-        //           $('#infoSensorModalTitle').text(name  + " historic data")
-        //           $("#loading").hide();
-        //
-        //         },
-        //         error:function(){
-        //           $("#loading").hide();
-        //           // Error code goes here.
-        //           $('#errorModal').modal('show');
-        //         }
-        //     });
+                  $('#infoSensorModal').modal('show');
+                  $('#infoSensorModalTitle').text(name  + " data")
+                  $("#loading").hide();
+
+                },
+                error:function(){
+                  $("#loading").hide();
+                  // Error code goes here.
+                  $('#errorModal').modal('show');
+                }
+            });
         },
         error:function(data){
           console.log(data)
