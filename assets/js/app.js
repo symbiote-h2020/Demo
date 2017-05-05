@@ -151,6 +151,7 @@ function handleClickRow(e){
   $.ajax({
         url: row_url,
         type: "GET",
+        beforeSend: function(xhr){xhr.setRequestHeader('Authorization', 'my-token');},
         dataType: "json",
         cache: false,
         success: function(data){
@@ -173,7 +174,7 @@ function handleClickRow(e){
 
                   var table = $('#historicTable').DataTable();
                   var row = table
-                  .row.add( [measurementValue, observedProperty, unit, location, latitude, longitude] )
+                  .row.add( [measurementValue, observedProperty, unit, location, latitude, longitude, type] )
                   .draw()
                   .node();
 
@@ -211,7 +212,7 @@ function setMarker(lat, lon){
 
   marker.on('click', function(e) {
     var content = "<table class='table table-striped' cellspacing='0' <thead> <th>Longitude</th> <th>Latitude</th> </thead> <tbody> <tr> <td>" + e.latlng.lng + " </td> <td>" + e.latlng.lat + " </td> </tr></tbody></table> <p></p>"
-    content += "<table class='table table-hover table-striped' cellspacing='0'> <thead> <th>Sensor</th> <th>Platform</th> <th> Observed Properties </th> <th> Owner </th> <th> Location </th> </thead> <tbody> ";
+    content += "<table class='table table-hover table-striped' cellspacing='0'> <thead> <th>Sensor</th> <th>Platform</th> <th> Observed Properties </th> <th> Owner </th> <th> Location </th> <th> Type </th> </thead> <tbody> ";
 
     for (i = 0; i < sensorsMarkers.length; i++){
       if(sensorsMarkers[i]._latlng.lat  == e.latlng.lat && sensorsMarkers[i]._latlng.lng  == e.latlng.lng){
@@ -232,7 +233,7 @@ function getSensors(){
   function parseSensor(data) {
     $('#searchModal').modal('hide');
     // console.log(data)
-    if(data.locationLatitude && data.locationLongitude){
+    //if(data.locationLatitude && data.locationLongitude){
 
 
       var currentCoordinates = Array();
@@ -261,8 +262,16 @@ function getSensors(){
         platform = data.platformName
 
       var table = $('#sensorsTable').DataTable();
+
+      var type = data.type.substring(data.type.lastIndexOf("#") + 1)
+      var locationName = data.locationName.substring(data.locationName.lastIndexOf("/") + 1)
+
+      for (var i = 0; i < data.observedProperties.length; i++) {
+        data.observedProperties[i] = data.observedProperties[i].substring(data.observedProperties[i].lastIndexOf("/") + 1 )
+      }
+
       var row = table
-      .row.add( [name, data.locationLongitude, data.locationLatitude, data.locationAltitude, platform, data.observedProperties, data.owner, data.locationName] )
+      .row.add( [name, data.locationLongitude, data.locationLatitude, data.locationAltitude, platform, data.observedProperties, data.owner, locationName, type] )
       .draw()
       .node();
       //
@@ -270,7 +279,7 @@ function getSensors(){
       row.setAttribute("identification", data.name);
       row.setAttribute("class", "clickable-row");
       row.addEventListener('click', handleClickRow);
-    }
+    //}
 
     // console.log("SENSORS MARKER "+sensorsMarkers.length);
     // console.log("SENSORS NAME "+sensorsName.length);
