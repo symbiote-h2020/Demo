@@ -144,14 +144,14 @@ function handleClickRow(e){
   var table = $('#historicTable').DataTable();
   var rows = table.rows().remove().draw();
 
-  var row_url = "http://symbiote-dev.man.poznan.pl:8100/coreInterface/v1/resourceUrls?id=" + e.target.parentNode.id
+  var row_url = "https://symbiote-dev.man.poznan.pl:8100/coreInterface/v1/resourceUrls?id=" + e.target.parentNode.id
 
   $("#loading").show();
 
   $.ajax({
         url: row_url,
         type: "GET",
-        beforeSend: function(xhr){xhr.setRequestHeader('Authorization', 'my-token');},
+        beforeSend: function(xhr){xhr.setRequestHeader('X-Auth-Token', 'my-token');},
         dataType: "json",
         cache: false,
         success: function(data){
@@ -263,15 +263,18 @@ function getSensors(){
 
       var table = $('#sensorsTable').DataTable();
 
-      var type = data.type.substring(data.type.lastIndexOf("#") + 1)
       var locationName = data.locationName.substring(data.locationName.lastIndexOf("/") + 1)
 
       for (var i = 0; i < data.observedProperties.length; i++) {
         data.observedProperties[i] = data.observedProperties[i].substring(data.observedProperties[i].lastIndexOf("/") + 1 )
       }
+      
+      for (var i = 0; i < data.resourceType.length; i++) {
+        data.resourceType[i] = data.resourceType[i].substring(data.resourceType[i].lastIndexOf("#") + 1 )
+      }
 
       var row = table
-      .row.add( [name, data.locationLongitude, data.locationLatitude, data.locationAltitude, platform, data.observedProperties, data.owner, locationName, type] )
+      .row.add( [name, data.locationLongitude, data.locationLatitude, data.locationAltitude, platform, data.observedProperties, data.owner, locationName, data.resourceType] )
       .draw()
       .node();
       //
@@ -300,7 +303,7 @@ function getSensors(){
 
 
   });
-  var url = 'http://symbiote-dev.man.poznan.pl:8100/coreInterface/v1/query';
+  var url = 'https://symbiote-dev.man.poznan.pl:8100/coreInterface/v1/query';
   if ($('#platform_name').val())
     search.push("platform_name="+$('#platform_name').val())
 
@@ -353,10 +356,11 @@ function getSensors(){
   $.ajax({
         url: url,
         type: "GET",
+        beforeSend: function(xhr){xhr.setRequestHeader('X-Auth-Token', 'my-token');},
         dataType: "json",
         cache: false,
         success: function(data){
-          if(data.length > 0){
+          if(data.resources.length > 0){
             search = [];
 
             $('#map').animate({
@@ -369,7 +373,7 @@ function getSensors(){
             document.getElementById("sensorsContent").style.display = "initial";
             document.getElementById("expandButton").style.display = "initial";
 
-            $.each(data, function( index, each ) {
+            $.each(data.resources, function( index, each ) {
               parseSensor(each);
             });
           }
