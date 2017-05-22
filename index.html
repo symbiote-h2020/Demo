@@ -37,23 +37,47 @@
   </head>
 
   <body>
-    <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
-      <div class="container-fluid">
-        <div class="navbar-header">
-          <div class="navbar-icon-container">
-            <a href="#" class="navbar-icon pull-right visible-xs" id="nav-btn"><i class="fa fa-bars fa-lg white"></i></a>
-          </div>
-          <a class="navbar-brand" onclick="window.location.reload();">symbIoTe</a>
-        </div>
-        <div class="navbar-collapse collapse">
-          <ul class="nav navbar-nav">
-            <li><a data-toggle="collapse" data-target=".navbar-collapse.in" id="searchTopBar"><i class="fa fa-search white"></i>&nbsp;&nbsp;Resources</a></li>
-          </ul>
-        </div><!--/.navbar-collapse -->
+
+    <div class="example3">
+  <nav class="navbar navbar-inverse navbar-static-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!--<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar3">
+          <span class="sr-only">Toggle navigation</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>-->
+          <a id="logoSymbiote" class="navbar-brand" href="https://www.symbiote-h2020.eu/"><img src="https://www.symbiote-h2020.eu/wp-content/uploads/2016/02/logo-1.1.png" height=70 width=140 alt="Dispute Bills">
+        </a>
       </div>
+      <div class="" id="bs-example-navbar-collapse-1">
+        <ul class="nav navbar-nav">
+          <li><a data-toggle="collapse" data-target=".navbar-collapse.in" id="searchTopBar" style="color:black"><i class="fa fa-search"></i>&nbsp;&nbsp;Resources</a></li>
+        </ul>
+        <div id="signin" class="navbar-form navbar-right" role="form" >
+          <div class="input-group">
+              <span class="input-group-addon"><i class="glyphicon glyphicon-user"></i></span>
+              <input id="username" type="text" class="form-control" name="username" value="" placeholder="Username">                                        
+          </div>
+
+          <div class="input-group">
+              <span class="input-group-addon"><i class="glyphicon glyphicon-lock"></i></span>
+              <input id="password" type="password" class="form-control" name="password" value="" placeholder="Password">                                        
+          </div>
+
+          <button type="submit" class="btn btn-primary" id="userLogin">Sign In</button>
+       </div>
+      </div>
+      <!--/.nav-collapse -->
     </div>
+    <!--/.container-fluid -->
+  </nav>
+</div>
 
     <div id="container">
+      <div id="login"><label id="loginStatus"></label> <div id="session" ><label style="font-weight: lighter; font-style: italic;">Your session will expire in </label> <span id="timer"></span></div></div>
+
       <div id="map"></div>
       <div id=mapButtons>
         <input type="button" class="btn btn-secondary" onclick="expandMap();" id="expandButton" value="Expand Map"></input>
@@ -64,7 +88,7 @@
           <table class="table table-hover table-striped" cellspacing="0" id="sensorsTable">
             <thead>
               <tr id="tableHeader">
-                <th>Sensor</th>
+                <th>Resource</th>
                 <th>Longitude</th>
                 <th>Latitude</th>
                 <th>Altitude</th>
@@ -107,7 +131,7 @@
               <div class="form-group">
                 <label class="control-label col-sm-2">Name:</label>
                 <div class="col-sm-10">
-                  <input type="text" class="form-control" id="name" placeholder="Ex.: Sensor 12">
+                  <input type="text" class="form-control" id="name" placeholder="Ex.: Resource 12">
                 </div>
               </div>
               <div class="form-group">
@@ -120,6 +144,12 @@
                 <label class="control-label col-sm-2" for="owner">Observed property:</label>
                 <div class="col-sm-10">
                   <input type="text" class="form-control" id="property" placeholder="Ex.: Temperature">
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="control-label col-sm-2">Type:</label>
+                <div class="col-sm-10">
+                  <input type="text" class="form-control" id="resource_type" placeholder="Ex.: Resource">
                 </div>
               </div>
               <div class="form-group">
@@ -200,7 +230,7 @@
           <h4 class="modal-title">Something went wrong...</h4>
           </div>
           <div class="modal-body">
-            <label>It was not possible to get sensor historical data. Please try again.</label>
+            <label id="errorLabel"></label>
           </div>
           <div class="modal-footer">
             <button type="submit" class="btn btn-secondary" data-dismiss="modal">Close</button>

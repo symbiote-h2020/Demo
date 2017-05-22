@@ -7,9 +7,7 @@ html, body, #container {
   width: 100%;
   overflow-y: auto;
 }
-body {
-  padding-top: 50px;
-}
+
 input[type="radio"], input[type="checkbox"] {
   margin: 0;
 }
@@ -61,7 +59,21 @@ input[type="radio"], input[type="checkbox"] {
 [data-tip]:hover:after {
 	display:block;
 }
-
+#loginStatus{
+  font-weight: lighter;
+  text-align: right;
+  font-style: italic;
+}
+#login{
+  text-align: right;
+  padding-right: 15px;
+  display: none;
+    margin-right: 3%;
+}
+#session{
+  display: none;
+  width: auto;
+}
 #sidebar {
   display: block;
   width: 250px;
@@ -127,7 +139,7 @@ input[type="radio"], input[type="checkbox"] {
 #map {
   margin-left: 3%;
   margin-right: 3%;
-  margin-top: 2%;
+  margin-top: 0%;
   width: auto;
   /*display: none;*/
   height: 85%;
@@ -252,8 +264,9 @@ input[type="radio"], input[type="checkbox"] {
   overflow-y: hidden;
 }
 .navbar-inverse {
-    background-color: #7E937D;
+    background-color:white;
     border-color: #7E937D;
+    box-shadow: 1px 1px 1px #888888;
 }
 .navbar-header .navbar-icon-container {
   margin-right: 15px;
@@ -337,4 +350,26 @@ input[type="radio"], input[type="checkbox"] {
   .leaflet-control-container {
     display: none !important;
   }
+}
+
+.example3 .navbar-brand {
+  height: 60px;
+  text-align: left;
+}
+
+.example3 .nav >li >a {
+  line-height: 70px;
+  padding-bottom: 5px;
+}
+.example3 .navbar-toggle {
+  padding: 10px;
+  margin: 25px 15px 25px 0;
+}
+
+#signin{
+  line-height: 70px;
+}
+
+@media screen and (max-width: 100px) { 
+   #logoSymbiote { display: none; } 
 }
