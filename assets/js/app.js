@@ -250,7 +250,9 @@ function getSensors(){
       obsProperties.push(data.observedProperties);
       locations.push(data.locationName);
 
-      setMarker(data.locationLatitude, data.locationLongitude);
+      if(data.locationLatitude !== null && data.locationLongitude !== null){
+        setMarker(data.locationLatitude, data.locationLongitude);
+      }
 
       // if (!data.Name)
       //   name = "unknown"
