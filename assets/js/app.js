@@ -7,6 +7,7 @@ var owners = Array();
 var coordinates = Array();
 var obsProperties = Array();
 var locations = Array();
+var resources_type = Array();
 
 
 var search = Array();
@@ -139,64 +140,123 @@ function expandMap (){
 
 //  Handle the click in a row that opens a modal with ths historic of the sensor of the clicked line
 function handleClickRow(e){
-  var table = document.getElementById("historicTable");
+  if (!sessionStorage.getItem("authorization")){
+    document.getElementById('errorLabel').innerHTML = 'Please make sure you are signed in to access resources historical data.'
+    $('#errorModal').modal('show');
+  }
+  else{
+    authorization_token = sessionStorage.getItem("authorization");
 
-  var table = $('#historicTable').DataTable();
-  var rows = table.rows().remove().draw();
+    var table = document.getElementById("historicTable");
 
-  var row_url = "https://symbiote-dev.man.poznan.pl:8100/coreInterface/v1/resourceUrls?id=" + e.target.parentNode.id
+    var table = $('#historicTable').DataTable();
+    var rows = table.rows().remove().draw();
 
-  $("#loading").show();
+    var row_url = "https://symbiote-dev.man.poznan.pl:8100/coreInterface/v1/resourceUrls?id=" + e.target.parentNode.id
 
-  $.ajax({
-        url: row_url,
-        type: "GET",
-        beforeSend: function(xhr){xhr.setRequestHeader('X-Auth-Token', 'my-token');},
-        dataType: "json",
-        cache: false,
-        success: function(data){
+    var platform_id = e.target.parentNode.getAttribute('platform_id');
 
-          var name = e.target.parentNode.getAttribute('identification');
-          object_url = data[e.target.parentNode.id]
-          $.ajax({
-                url: object_url,
+    $("#loading").show();
+
+    // Get resource url
+    $.ajax({
+          url: row_url,
+          type: "GET",
+          beforeSend: function(xhr){xhr.setRequestHeader('X-Auth-Token', authorization_token);},
+          contentType: "application/json",
+          cache: false,
+          success: function(data){
+            var name = e.target.parentNode.getAttribute('identification');
+            object_url = data[e.target.parentNode.id]
+            console.log(data)
+
+            // Get all platforms tokens
+            $.ajax({
+                url: 'https://symbiote-dev.man.poznan.pl:8100/coreInterface/v1/get_available_aams',
                 type: "GET",
-                dataType: "json",
+                contentType: "application/json",
                 cache: false,
                 success: function(data){
-                  var location = data['body']['location']['description']
-                  var latitude = data['body']['location']['latitude']
-                  var longitude = data['body']['location']['longitude']
+                  console.log(data)
 
-                  var observedProperty = data['body']['obsValue']['obsProperty']['label']
-                  var unit = data['body']['obsValue']['uom']['symbol']
-                  var measurementValue = data['body']['obsValue']['value']
+                  for (var i = 0; i < data.length; i++){
+                    if (data[i].aamInstanceId == platform_id)
+                      get_token_url = data[i].aamAddress + '/request_foreign_token'
+                  }
+                  console.log(get_token_url);
+                  //Get the token using the returned url by the previous request
+                  $.ajax({
+                    url: get_token_url,
+                    type: "POST",
+                    beforeSend: function(xhr){xhr.setRequestHeader('X-Auth-Token', authorization_token);},
+                    contentType: "application/json",
+                    cache: false,
+                    success: function(data, status, xhr){
+                      var resource_token = xhr.getResponseHeader("X-Auth-Token");
+                      console.log(resource_token);
 
-                  var table = $('#historicTable').DataTable();
-                  var row = table
-                  .row.add( [measurementValue, observedProperty, unit, location, latitude, longitude, type] )
-                  .draw()
-                  .node();
+                      // Get the historical data for the clicked resource (using url returned by the firs request and the specific token for the pretended platform that the resource belogns)
+                      $.ajax({
+                        url: object_url + "/Observations",
+                        type: "GET",
+                        beforeSend: function(xhr){xhr.setRequestHeader('X-Auth-Token', resource_token);},
+                        contentType: "application/json",
+                        cache: false,
+                        success: function(data){
+                          var location = data['body']['location']['description']
+                          var latitude = data['body']['location']['latitude']
+                          var longitude = data['body']['location']['longitude']
 
-                  $('#infoSensorModal').modal('show');
-                  $('#infoSensorModalTitle').text(name  + " data")
-                  $("#loading").hide();
+                          var observedProperty = data['body']['obsValue']['obsProperty']['label']
+                          var unit = data['body']['obsValue']['uom']['symbol']
+                          var measurementValue = data['body']['obsValue']['value']
+
+                          var table = $('#historicTable').DataTable();
+                          var row = table
+                          .row.add( [measurementValue, observedProperty, unit, location, latitude, longitude, type] )
+                          .draw()
+                          .node();
+
+                          $('#infoSensorModal').modal('show');
+                          $('#infoSensorModalTitle').text(name  + " data")
+                          $("#loading").hide();
+
+                        },
+                        error:function(){
+                          $("#loading").hide();
+                          // Error code goes here.
+                          document.getElementById('errorLabel').innerHTML = 'It was not possible to get resource historical data. Please try again.'
+                          $('#errorModal').modal('show');
+                        }
+                    });
+
+                    },
+                    error:function(error){
+                      $("#loading").hide();
+                      // Error code goes here.
+                      document.getElementById('errorLabel').innerHTML = 'It was not possible to get resource historical data. Please try again.'
+                      $('#errorModal').modal('show');
+                      console.log(error);
+                    }
+                  });
 
                 },
-                error:function(){
+                error:function(error){
                   $("#loading").hide();
                   // Error code goes here.
-                  $('#errorModal').modal('show');
                 }
             });
-        },
-        error:function(data){
-          console.log(data)
-          $("#loading").hide();
-          // Error code goes here.
-          $('#errorModal').modal('show');
-        }
-    });
+          },
+          error:function(data){
+            //console.log(data)
+            $("#loading").hide();
+            // Error code goes here.
+            document.getElementById('errorLabel').innerHTML = 'It was not possible to get resource historical data. Please try again.'
+            $('#errorModal').modal('show');
+          }
+      });
+    
+  }
 }
 
 // Remove data (sensors) from previous search
@@ -216,7 +276,7 @@ function setMarker(lat, lon){
 
     for (i = 0; i < sensorsMarkers.length; i++){
       if(sensorsMarkers[i]._latlng.lat  == e.latlng.lat && sensorsMarkers[i]._latlng.lng  == e.latlng.lng){
-        content += "<tr><td>" + sensorsName[i] + "</td>" + "<td>" + platformsName[i] + "</td>" + "<td>" + obsProperties[i] + "</td>"+ "<td>" + owners[i] + "</td><td>"+ locations[i] + "</td></tr>"
+        content += "<tr><td>" + sensorsName[i] + "</td>" + "<td>" + platformsName[i] + "</td>" + "<td>" + obsProperties[i] + "</td>"+ "<td>" + owners[i] + "</td><td>"+ locations[i] + "</td><td>"+ resources_type[i] + "</td></tr>"
       }
     }
     content += "</tbody></table> <p></p>"
@@ -227,14 +287,13 @@ function setMarker(lat, lon){
   });
 
 }
+ 
+ // parse sensors data
+ function parseSensor(data) {
 
-// Get the sensors
-function getSensors(){
-  function parseSensor(data) {
     $('#searchModal').modal('hide');
     // console.log(data)
     //if(data.locationLatitude && data.locationLongitude){
-
 
       var currentCoordinates = Array();
       currentCoordinates.push(data.locationLatitude);
@@ -249,8 +308,12 @@ function getSensors(){
       platformsName.push(data.platformName);
       obsProperties.push(data.observedProperties);
       locations.push(data.locationName);
+      type = data.resourceType[0].split('#')
+      resources_type.push(type[type.length-1]);
 
-      setMarker(data.locationLatitude, data.locationLongitude);
+      if(data.locationLatitude !== null && data.locationLongitude !== null){
+        setMarker(data.locationLatitude, data.locationLongitude);
+      }
 
       // if (!data.Name)
       //   name = "unknown"
@@ -279,6 +342,7 @@ function getSensors(){
       .node();
       //
       row.setAttribute("id", data.id);
+      row.setAttribute("platform_id", data.platformId);
       row.setAttribute("identification", data.name);
       row.setAttribute("class", "clickable-row");
       row.addEventListener('click', handleClickRow);
@@ -293,6 +357,9 @@ function getSensors(){
     // console.log("LOCATIONS "+locations.length);
 
   };
+
+// Get the sensors
+function getSensors(){
 
   $(document).ajaxStop(function() {
     // LAST AJAX CALL Finishes
@@ -321,6 +388,9 @@ function getSensors(){
 
   if ($('#location_name').val())
     search.push("location_name="+$('#location_name').val())
+
+  if ($('#resource_type').val())
+    search.push("type="+$('#resource_type').val())
 
   // if ($('#latitude').val())
   //   search.push("location_lat="+$('#latitude').val())
@@ -360,6 +430,7 @@ function getSensors(){
         dataType: "json",
         cache: false,
         success: function(data){
+          //console.log(data);
           if(data.resources.length > 0){
             search = [];
 
@@ -458,7 +529,60 @@ searchTopBar.addEventListener('click', function() {
   if ($('#property').val())
     $('#property').val("")
 
+  if ($('#resource_type').val())
+  $('#resource_type').val("")
+
 }, false);
+
+
+userLogin.addEventListener('click', function(){
+  if (!$('#username').val() || !$('#password').val())
+    alert("missing credentials");
+  else{
+    var username = $('#username').val();
+    var password = $('#password').val();
+
+    $.ajax({
+        url: "https://symbiote-dev.man.poznan.pl:8100/coreInterface/v1/login",
+        data: JSON.stringify({ "username": username, "password": password }),
+        type: "POST",
+        contentType: "application/json",
+        cache: false,
+        success: function(res, status, xhr) { 
+          var token = xhr.getResponseHeader("X-Auth-Token");
+          //console.log(token)
+
+          sessionStorage.setItem("authorization", token);
+
+          document.getElementById('session').style.display = 'inline';
+
+          document.getElementById("login").style.display = 'block'
+          document.getElementById("loginStatus").innerHTML = "Welcome " + username + "!";
+          document.getElementById("loginStatus").style.color = "green";
+
+          document.getElementById('timer').innerHTML = 05 + ":" + 00;
+          startTimer();
+        },
+        error:function(error){
+          // TODO add error message
+          if(error.status == 401){
+            document.getElementById("login").style.display = 'block'
+            document.getElementById('session').style.display = 'none';
+            document.getElementById("loginStatus").innerHTML = "Invalid Credentials";
+            document.getElementById("loginStatus").style.color = "firebrick";
+          }
+          else{
+            document.getElementById("login").style.display = 'block'
+            document.getElementById('session').style.display = 'none';
+            document.getElementById("loginStatus").innerHTML = "It was not possible to sign in. Please try again later.";
+            document.getElementById("loginStatus").style.color = "firebrick";
+          }
+        }
+    });
+  }
+
+
+});
 
 
 // Submit model search
@@ -496,6 +620,7 @@ searchModalButton.addEventListener('click', function() {
   obsProperties = [];
   locations = [];
   owners = [];
+  resources_type = [];
 
   getSensors();
 }, false);
@@ -531,6 +656,7 @@ $(document).on("ready", function () {
   var searchModalButton = document.getElementById('searchModalButton');
   var closeSearchModal = document.getElementById('closeSearchModalButton');
   var resetLocation = document.getElementById('resetLocation');
+  var login = document.getElementById('userLogin');
 
 });
 // Leaflet patch to make layer control scrollable on touch browsers
@@ -542,3 +668,24 @@ $(document).on("ready", function () {
 // } else {
 //   L.DomEvent.disableClickPropagation(container);
 // }
+
+function startTimer() {
+  var presentTime = document.getElementById('timer').innerHTML;
+  var timeArray = presentTime.split(/[:]+/);
+  var m = timeArray[0];
+  var s = checkSecond((timeArray[1] - 1));
+  if(s==59){m=m-1}
+  if(m<0){
+    document.getElementById("loginStatus").innerHTML = "Your session has expired. Please sign in again"
+  }
+  
+  document.getElementById('timer').innerHTML =
+    m + ":" + s;
+  setTimeout(startTimer, 1000);
+}
+
+function checkSecond(sec) {
+  if (sec < 10 && sec >= 0) {sec = "0" + sec}; // add zero in front of numbers < 10
+  if (sec < 0) {sec = "59"};
+  return sec;
+}
