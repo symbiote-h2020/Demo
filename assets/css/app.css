@@ -2,6 +2,9 @@
     display: none;
 }
 
+.container{
+  width: 90%;
+}
 html, body, #container {
   height: 100%;
   width: 100%;
@@ -68,7 +71,7 @@ input[type="radio"], input[type="checkbox"] {
   text-align: right;
   padding-right: 15px;
   display: none;
-    margin-right: 3%;
+  margin-right: 3%;
 }
 #session{
   display: none;
@@ -255,16 +258,28 @@ input[type="radio"], input[type="checkbox"] {
 .table {
   margin-bottom: 0px;
 }
+.notification{
+  width: 300px;
+  height: 100px;
+  background-color:rgba(0, 0, 0, 0.5);
+  border-radius: 4px;
+  position: fixed;
+  top: 100px;
+  /*right: 8px;*/
+  right: -300px;
+  z-index: 10000;
+}
 .navbar .navbar-brand {
   font-weight: bold;
   font-size: 25px;
   color: #FFFFFF;
+
 }
 .navbar-collapse.in {
   overflow-y: hidden;
 }
 .navbar-inverse {
-    background-color:white;
+    background-color: #7E937D;
     border-color: #7E937D;
     box-shadow: 1px 1px 1px #888888;
 }
