@@ -193,7 +193,9 @@ function handleClickRow(e){
                     cache: false,
                     success: function(data, status, xhr){
                       var resource_token = xhr.getResponseHeader("X-Auth-Token");
-                      console.log(resource_token);
+
+                      split_object_url = object_url.split('(');
+                      object_url = split_object_url[0] + 's(' + split_object_url[1];
 
                       // Get the historical data for the clicked resource (using url returned by the firs request and the specific token for the pretended platform that the resource belogns)
                       $.ajax({
@@ -203,19 +205,25 @@ function handleClickRow(e){
                         contentType: "application/json",
                         cache: false,
                         success: function(data){
-                          var location = data['body']['location']['description']
-                          var latitude = data['body']['location']['latitude']
-                          var longitude = data['body']['location']['longitude']
+                        historical_data = JSON.parse(data)
 
-                          var observedProperty = data['body']['obsValue']['obsProperty']['label']
-                          var unit = data['body']['obsValue']['uom']['symbol']
-                          var measurementValue = data['body']['obsValue']['value']
+                        for (var i = 0; i < historical_data.length; i ++){
+                          console.log(historical_data[i])
+                          // var location = data[i]['location']['description']
+                          var latitude = historical_data[i]['location']['latitude']
+                          var longitude = historical_data[i]['location']['longitude']
+
+                          var observedProperty = historical_data[i]['obsValues'][0]['obsProperty']['label']
+                          var unit = historical_data[i]['obsValues'][0]['uom']['symbol']
+                          var measurementValue = historical_data[i]['obsValues'][0]['value']
 
                           var table = $('#historicTable').DataTable();
                           var row = table
-                          .row.add( [measurementValue, observedProperty, unit, location, latitude, longitude, type] )
+                          .row.add( [measurementValue, observedProperty, unit, latitude, longitude, type] )
                           .draw()
                           .node();
+
+                        }
 
                           $('#infoSensorModal').modal('show');
                           $('#infoSensorModalTitle').text(name  + " data")
@@ -658,6 +666,9 @@ $(document).on("ready", function () {
   var resetLocation = document.getElementById('resetLocation');
   var login = document.getElementById('userLogin');
 
+ // var websocket = new WebSocket('ws://openiot.tel.fer.hr/notification');
+  startWebsockets();
+
 });
 // Leaflet patch to make layer control scrollable on touch browsers
 // var container = $(".leaflet-control-layers")[0];
@@ -676,16 +687,42 @@ function startTimer() {
   var s = checkSecond((timeArray[1] - 1));
   if(s==59){m=m-1}
   if(m<0){
-    document.getElementById("loginStatus").innerHTML = "Your session has expired. Please sign in again"
-  }
+    sessionStorage.removeItem("authorization");
+    document.getElementById('session').style.display = 'none';
+    document.getElementById("loginStatus").innerHTML = "Your session has expired. Please sign in again";
+    document.getElementById("loginStatus").style.color = "firebrick";
+  }else{
   
   document.getElementById('timer').innerHTML =
     m + ":" + s;
   setTimeout(startTimer, 1000);
+  }
 }
 
 function checkSecond(sec) {
   if (sec < 10 && sec >= 0) {sec = "0" + sec}; // add zero in front of numbers < 10
   if (sec < 0) {sec = "59"};
   return sec;
+}
+
+function startWebsockets(){
+  $.ajax({
+      url: 'https://symbiote-dev.man.poznan.pl:8100/coreInterface/v1/get_available_aams',
+      type: "GET",
+      contentType: "application/json",
+      cache: false,
+      success: function(data){
+        console.log(data)
+
+        for (var i = 0; i < data.length; i++){
+            platform_url = data[i].aamAddress
+            console.log(platform_url)
+        }
+
+      },
+      error:function(error){
+        $("#loading").hide();
+        alert('Websocket connection problem. Refresh the page.')
+      }
+  });
 }
