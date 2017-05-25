@@ -194,8 +194,8 @@ function handleClickRow(e){
                     success: function(data, status, xhr){
                       var resource_token = xhr.getResponseHeader("X-Auth-Token");
 
-                      split_object_url = object_url.split('(');
-                      object_url = split_object_url[0] + 's(' + split_object_url[1];
+                      // split_object_url = object_url.split('(');
+                      // object_url = split_object_url[0] + 's(' + split_object_url[1];
 
                       // Get the historical data for the clicked resource (using url returned by the firs request and the specific token for the pretended platform that the resource belogns)
                       $.ajax({
