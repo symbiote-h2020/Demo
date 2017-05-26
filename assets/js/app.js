@@ -9,6 +9,8 @@ var obsProperties = Array();
 var locations = Array();
 var resources_type = Array();
 
+var graphDict = {};
+
 
 var search = Array();
 
@@ -199,23 +201,43 @@ function handleClickRow(e){
 
                       // Get the historical data for the clicked resource (using url returned by the firs request and the specific token for the pretended platform that the resource belogns)
                       $.ajax({
-                        url: object_url + "/Observations",
+                        url: object_url + "/Observations?$top=20",
                         type: "GET",
                         beforeSend: function(xhr){xhr.setRequestHeader('X-Auth-Token', resource_token);},
                         contentType: "application/json",
                         cache: false,
                         success: function(data){
                         historical_data = JSON.parse(data)
+                        
+                        graphDict = {}
+                        $("#selectBox").empty();
 
                         for (var i = 0; i < historical_data.length; i ++){
-                          console.log(historical_data[i])
-                          // var location = data[i]['location']['description']
-                          var latitude = historical_data[i]['location']['latitude']
-                          var longitude = historical_data[i]['location']['longitude']
+                          if (historical_data[i]['location'])
+                            var latitude = historical_data[i]['location']['latitude']
+                          else
+                            var latitude = "NA"
+                          
+                          if (historical_data[i]['location'])
+                            var longitude = historical_data[i]['location']['longitude']
+                          else
+                            var longitude = "NA"
 
                           var observedProperty = historical_data[i]['obsValues'][0]['obsProperty']['label']
                           var unit = historical_data[i]['obsValues'][0]['uom']['symbol']
                           var measurementValue = historical_data[i]['obsValues'][0]['value']
+                          var samplingTime = historical_data[i]['samplingTime']
+
+                          if (observedProperty in graphDict){
+                              graphDict[observedProperty].push([measurementValue, samplingTime]);
+                          }
+
+                          else{
+                            graphDict[observedProperty] = []
+                            graphDict[observedProperty].push([measurementValue, samplingTime]);
+                            $("#selectBox").append('<option value="' + observedProperty + '">' + observedProperty + '</option>');}
+
+                          //console.log(graphDict);
 
                           var table = $('#historicTable').DataTable();
                           var row = table
@@ -284,7 +306,7 @@ function setMarker(lat, lon){
 
     for (i = 0; i < sensorsMarkers.length; i++){
       if(sensorsMarkers[i]._latlng.lat  == e.latlng.lat && sensorsMarkers[i]._latlng.lng  == e.latlng.lng){
-        content += "<tr><td>" + sensorsName[i] + "</td>" + "<td>" + platformsName[i] + "</td>" + "<td>" + obsProperties[i] + "</td>"+ "<td>" + owners[i] + "</td><td>"+ locations[i] + "</td><td>"+ resources_type[i] + "</td></tr>"
+        content += "<tr><td>" + sensorsName[i] + "</td>" + "<td>" + platformsName[i] + "</td>" + "<td>" + obsProperties[i] + "</td>"+ "<td>" + locations[i] + "</td><td>"+ resources_type[i] + "</td></tr>"
       }
     }
     content += "</tbody></table> <p></p>"
@@ -463,7 +485,7 @@ function getSensors(){
 
             document.getElementById("errorFooter").style.display = "initial";
             document.getElementById("errorSearch").innerHTML="The search did not return any results."
-            //
+            
             document.getElementById("sensorsContent").style.display = "none";
             document.getElementById("expandButton").style.display = "none";
 
@@ -568,7 +590,7 @@ userLogin.addEventListener('click', function(){
           document.getElementById("loginStatus").innerHTML = "Welcome " + username + "!";
           document.getElementById("loginStatus").style.color = "green";
 
-          document.getElementById('timer').innerHTML = 05 + ":" + 00;
+          document.getElementById('timer').innerHTML = 60 + ":" + 00;
           startTimer();
         },
         error:function(error){
@@ -637,6 +659,61 @@ closeSearchModalButton.addEventListener('click', function() {
   $(".leaflet-locpicker-map" ).hide();
 }, false);
 
+close_graph.addEventListener('click', function() {
+  $('#graphModal').modal('hide');
+  $('#infoSensorModal').modal('show');
+}, false);
+
+
+graphicalReport.addEventListener('click', function() {
+  selected_propertie = $('#selectBox').val();
+
+  // console.log(graphDict[selected_propertie]);
+
+  $('#graphModal').modal('show');
+  $('#infoSensorModal').modal('hide');
+
+  var ctx = document.getElementById("graph").getContext('2d');
+
+  var graph_values = [];
+  var graph_times = [];
+
+  for (var i = 0; i < graphDict[selected_propertie].length; i++){
+    graph_values.push(graphDict[selected_propertie][i][0]);
+
+    time = graphDict[selected_propertie][i][1].split('T')[1].split('.')[0]
+    date = graphDict[selected_propertie][i][1].split('T')[0]
+    graph_times.push(time + ' ' + date);
+  }
+
+  // document.getElementById('graph_title').innerHTML = graphDict[selected_propertie][0][1].split('T')[1] + 'data';
+
+  var myLineChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+    labels: graph_times,
+    datasets: [{ 
+        data: graph_values,
+        label: selected_propertie,
+        borderColor: "#3e95cd",
+        fill: false
+      }
+    ]
+  },
+    options: {
+    scales: {
+      xAxes: [{
+        ticks: {
+          autoSkip: false,
+          maxRotation: 90,
+          minRotation: 90
+        }
+      }]
+    }
+  }
+});
+}, false);
+
 resetLocation.addEventListener('click', function() {
   if($('#geoloc').val()){
     $("#geoloc").val("");
@@ -665,6 +742,8 @@ $(document).on("ready", function () {
   var closeSearchModal = document.getElementById('closeSearchModalButton');
   var resetLocation = document.getElementById('resetLocation');
   var login = document.getElementById('userLogin');
+  var graphicalReport = document.getElementById('graphicalReport');
+  var close_graph = document.getElementById('close_graph');
 
  // var websocket = new WebSocket('ws://openiot.tel.fer.hr/notification');
   startWebsockets();

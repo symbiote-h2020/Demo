@@ -25,6 +25,9 @@
     <link rel="stylesheet" href="assets/leaflet-groupedlayercontrol/leaflet.groupedlayercontrol.css">
     <link rel="stylesheet" href="assets/css/app.css">
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.6.0/Chart.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.6.0/Chart.min.js"></script>
+
 
     <link rel="apple-touch-icon" sizes="76x76" href="assets/img/favicon-76.png">
     <link rel="apple-touch-icon" sizes="120x120" href="assets/img/favicon-120.png">
@@ -94,7 +97,6 @@
                 <th>Altitude</th>
                 <th>Platform</th>
                 <th>Observed Properties</th>
-                <th>Owner</th>
                 <th>Location</th>
                 <th>Type</th>
               </tr>
@@ -215,6 +217,11 @@
           </div>
           </div>
           <div class="modal-footer">
+
+            <select id="selectBox" name="selectBox" class="pull-left" style="margin-right:1%; height:35px;">
+            </select>
+            
+            <button id="graphicalReport" class="btn btn-primary pull-left">Generate Graphical Report</button>
             <button type="submit" class="btn btn-secondary" data-dismiss="modal">Close</button>
           </div>
 
@@ -260,8 +267,26 @@
       <div style="padding:3%; text-align:justified">
               <label style="color:white; font-weight:lighter;">Resource 12345 from Platform X was updated! New historical data is now available!</label>
       </div>
-
     </div>
+
+    <div class="modal fade" id="graphModal">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+          <h4 class="modal-title" id="graph_title"></h4>
+          </div>
+          <div class="modal-body">
+            <canvas id="graph" width="400" height="180"></canvas>
+          </div>
+          <div class="modal-footer">
+            <button id="close_graph" class="btn btn-secondary" data-dismiss="modal">Go Back</button>
+          </div>
+
+        </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+
+    
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/typeahead.js/0.10.5/typeahead.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/3.0.3/handlebars.min.js"></script>
