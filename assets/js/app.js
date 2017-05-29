@@ -149,142 +149,8 @@ function handleClickRow(e){
   else{
     authorization_token = sessionStorage.getItem("authorization");
 
-    var table = document.getElementById("historicTable");
-
-    var table = $('#historicTable').DataTable();
-    var rows = table.rows().remove().draw();
-
-    var row_url = "https://symbiote-dev.man.poznan.pl:8100/coreInterface/v1/resourceUrls?id=" + e.target.parentNode.id
-
-    var platform_id = e.target.parentNode.getAttribute('platform_id');
-
-    $("#loading").show();
-
-    // Get resource url
-    $.ajax({
-          url: row_url,
-          type: "GET",
-          beforeSend: function(xhr){xhr.setRequestHeader('X-Auth-Token', authorization_token);},
-          contentType: "application/json",
-          cache: false,
-          success: function(data){
-            var name = e.target.parentNode.getAttribute('identification');
-            object_url = data[e.target.parentNode.id]
-            console.log(data)
-
-            // Get all platforms tokens
-            $.ajax({
-                url: 'https://symbiote-dev.man.poznan.pl:8100/coreInterface/v1/get_available_aams',
-                type: "GET",
-                contentType: "application/json",
-                cache: false,
-                success: function(data){
-                  console.log(data)
-
-                  for (var i = 0; i < data.length; i++){
-                    if (data[i].aamInstanceId == platform_id)
-                      get_token_url = data[i].aamAddress + '/request_foreign_token'
-                  }
-                  console.log(get_token_url);
-                  //Get the token using the returned url by the previous request
-                  $.ajax({
-                    url: get_token_url,
-                    type: "POST",
-                    beforeSend: function(xhr){xhr.setRequestHeader('X-Auth-Token', authorization_token);},
-                    contentType: "application/json",
-                    cache: false,
-                    success: function(data, status, xhr){
-                      var resource_token = xhr.getResponseHeader("X-Auth-Token");
-
-                      // split_object_url = object_url.split('(');
-                      // object_url = split_object_url[0] + 's(' + split_object_url[1];
-
-                      // Get the historical data for the clicked resource (using url returned by the firs request and the specific token for the pretended platform that the resource belogns)
-                      $.ajax({
-                        url: object_url + "/Observations?$top=20",
-                        type: "GET",
-                        beforeSend: function(xhr){xhr.setRequestHeader('X-Auth-Token', resource_token);},
-                        contentType: "application/json",
-                        cache: false,
-                        success: function(data){
-                        historical_data = JSON.parse(data)
-                        
-                        graphDict = {}
-                        $("#selectBox").empty();
-
-                        for (var i = 0; i < historical_data.length; i ++){
-                          if (historical_data[i]['location'])
-                            var latitude = historical_data[i]['location']['latitude']
-                          else
-                            var latitude = "NA"
-                          
-                          if (historical_data[i]['location'])
-                            var longitude = historical_data[i]['location']['longitude']
-                          else
-                            var longitude = "NA"
-
-                          var observedProperty = historical_data[i]['obsValues'][0]['obsProperty']['label']
-                          var unit = historical_data[i]['obsValues'][0]['uom']['symbol']
-                          var measurementValue = historical_data[i]['obsValues'][0]['value']
-                          var samplingTime = historical_data[i]['samplingTime']
-
-                          if (observedProperty in graphDict){
-                              graphDict[observedProperty].push([measurementValue, samplingTime]);
-                          }
-
-                          else{
-                            graphDict[observedProperty] = []
-                            graphDict[observedProperty].push([measurementValue, samplingTime]);
-                            $("#selectBox").append('<option value="' + observedProperty + '">' + observedProperty + '</option>');}
-
-                          //console.log(graphDict);
-
-                          var table = $('#historicTable').DataTable();
-                          var row = table
-                          .row.add( [measurementValue, observedProperty, unit, latitude, longitude, type] )
-                          .draw()
-                          .node();
-
-                        }
-
-                          $('#infoSensorModal').modal('show');
-                          $('#infoSensorModalTitle').text(name  + " data")
-                          $("#loading").hide();
-
-                        },
-                        error:function(){
-                          $("#loading").hide();
-                          // Error code goes here.
-                          document.getElementById('errorLabel').innerHTML = 'It was not possible to get resource historical data. Please try again.'
-                          $('#errorModal').modal('show');
-                        }
-                    });
-
-                    },
-                    error:function(error){
-                      $("#loading").hide();
-                      // Error code goes here.
-                      document.getElementById('errorLabel').innerHTML = 'It was not possible to get resource historical data. Please try again.'
-                      $('#errorModal').modal('show');
-                      console.log(error);
-                    }
-                  });
-
-                },
-                error:function(error){
-                  $("#loading").hide();
-                  // Error code goes here.
-                }
-            });
-          },
-          error:function(data){
-            //console.log(data)
-            $("#loading").hide();
-            // Error code goes here.
-            document.getElementById('errorLabel').innerHTML = 'It was not possible to get resource historical data. Please try again.'
-            $('#errorModal').modal('show');
-          }
-      });
+    // sensors(e);
+    actuators(e);
     
   }
 }
@@ -730,6 +596,7 @@ resetLocation.addEventListener('click', function() {
 
 // ----- DOCUMENT READY -----
 $(document).on("ready", function () {
+
   $("#loading").hide();
 
   $('#geoloc').leafletLocationPicker();
@@ -804,4 +671,186 @@ function startWebsockets(){
         alert('Websocket connection problem. Refresh the page.')
       }
   });
+}
+
+function actuators(e){
+  var actuatorValue = 0;
+    // switch button
+    $("[name='my-checkbox']").bootstrapSwitch();
+
+    $('input[name="my-checkbox"]').on('switchChange.bootstrapSwitch', function(event, state) {
+      console.log(state); // true | false
+    });
+
+    //sliders
+    var slider = new Slider('#ex1', {
+      formatter: function(value) {
+        console.log(value);
+        return 'Current value: ' + value;
+      }
+    });
+
+    var slider2 = new Slider('#ex2', {
+      formatter: function(value) {
+        console.log(value);
+        return 'Current value: ' + value;
+      }
+    });
+
+    // rgb sliders
+    var RGBChange = function() {
+      $('#RGB').css('background', 'rgb('+r.getValue()+','+g.getValue()+','+b.getValue()+')')
+      console.log('rgb('+r.getValue()+','+g.getValue()+','+b.getValue()+')');
+    };
+
+    var r = $('#R').slider()
+      .on('slide', RGBChange)
+      .data('slider');
+    var g = $('#G').slider()
+        .on('slide', RGBChange)
+        .data('slider');
+    var b = $('#B').slider()
+        .on('slide', RGBChange)
+        .data('slider');
+
+    $('#actuatorsModal').modal('show');
+}
+
+function sensors(e){
+  var table = document.getElementById("historicTable");
+
+    var table = $('#historicTable').DataTable();
+    var rows = table.rows().remove().draw();
+
+    var row_url = "https://symbiote-dev.man.poznan.pl:8100/coreInterface/v1/resourceUrls?id=" + e.target.parentNode.id
+
+    var platform_id = e.target.parentNode.getAttribute('platform_id');
+
+    $("#loading").show();
+
+    // Get resource url
+    $.ajax({
+          url: row_url,
+          type: "GET",
+          beforeSend: function(xhr){xhr.setRequestHeader('X-Auth-Token', authorization_token);},
+          contentType: "application/json",
+          cache: false,
+          success: function(data){
+            var name = e.target.parentNode.getAttribute('identification');
+            object_url = data[e.target.parentNode.id]
+            console.log(data)
+
+            // Get all platforms tokens
+            $.ajax({
+                url: 'https://symbiote-dev.man.poznan.pl:8100/coreInterface/v1/get_available_aams',
+                type: "GET",
+                contentType: "application/json",
+                cache: false,
+                success: function(data){
+                  console.log(data)
+
+                  for (var i = 0; i < data.length; i++){
+                    if (data[i].aamInstanceId == platform_id)
+                      get_token_url = data[i].aamAddress + '/request_foreign_token'
+                  }
+                  console.log(get_token_url);
+                  //Get the token using the returned url by the previous request
+                  $.ajax({
+                    url: get_token_url,
+                    type: "POST",
+                    beforeSend: function(xhr){xhr.setRequestHeader('X-Auth-Token', authorization_token);},
+                    contentType: "application/json",
+                    cache: false,
+                    success: function(data, status, xhr){
+                      var resource_token = xhr.getResponseHeader("X-Auth-Token");
+
+                      // split_object_url = object_url.split('(');
+                      // object_url = split_object_url[0] + 's(' + split_object_url[1];
+
+                      // Get the historical data for the clicked resource (using url returned by the firs request and the specific token for the pretended platform that the resource belogns)
+                      $.ajax({
+                        url: object_url + "/Observations?$top=20",
+                        type: "GET",
+                        beforeSend: function(xhr){xhr.setRequestHeader('X-Auth-Token', resource_token);},
+                        contentType: "application/json",
+                        cache: false,
+                        success: function(data){
+                        historical_data = JSON.parse(data)
+                        
+                        graphDict = {}
+                        $("#selectBox").empty();
+
+                        for (var i = 0; i < historical_data.length; i ++){
+                          if (historical_data[i]['location'])
+                            var latitude = historical_data[i]['location']['latitude']
+                          else
+                            var latitude = "NA"
+                          
+                          if (historical_data[i]['location'])
+                            var longitude = historical_data[i]['location']['longitude']
+                          else
+                            var longitude = "NA"
+
+                          var observedProperty = historical_data[i]['obsValues'][0]['obsProperty']['label']
+                          var unit = historical_data[i]['obsValues'][0]['uom']['symbol']
+                          var measurementValue = historical_data[i]['obsValues'][0]['value']
+                          var samplingTime = historical_data[i]['samplingTime']
+
+                          if (observedProperty in graphDict){
+                              graphDict[observedProperty].push([measurementValue, samplingTime]);
+                          }
+
+                          else{
+                            graphDict[observedProperty] = []
+                            graphDict[observedProperty].push([measurementValue, samplingTime]);
+                            $("#selectBox").append('<option value="' + observedProperty + '">' + observedProperty + '</option>');}
+
+                          //console.log(graphDict);
+
+                          var table = $('#historicTable').DataTable();
+                          var row = table
+                          .row.add( [measurementValue, observedProperty, unit, latitude, longitude, type] )
+                          .draw()
+                          .node();
+
+                        }
+
+                          $('#infoSensorModal').modal('show');
+                          $('#infoSensorModalTitle').text(name  + " data")
+                          $("#loading").hide();
+
+                        },
+                        error:function(){
+                          $("#loading").hide();
+                          // Error code goes here.
+                          document.getElementById('errorLabel').innerHTML = 'It was not possible to get resource historical data. Please try again.'
+                          $('#errorModal').modal('show');
+                        }
+                    });
+
+                    },
+                    error:function(error){
+                      $("#loading").hide();
+                      // Error code goes here.
+                      document.getElementById('errorLabel').innerHTML = 'It was not possible to get resource historical data. Please try again.'
+                      $('#errorModal').modal('show');
+                      console.log(error);
+                    }
+                  });
+
+                },
+                error:function(error){
+                  $("#loading").hide();
+                  // Error code goes here.
+                }
+            });
+          },
+          error:function(data){
+            //console.log(data)
+            $("#loading").hide();
+            // Error code goes here.
+            document.getElementById('errorLabel').innerHTML = 'It was not possible to get resource historical data. Please try again.'
+            $('#errorModal').modal('show');
+          }
+      });
 }
