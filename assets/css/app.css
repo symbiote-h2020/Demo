@@ -418,3 +418,16 @@ input[type="radio"], input[type="checkbox"] {
 #R, #G, #B {
 	width: 300px;
 }
+
+#light_switch{
+  display: none;
+}
+#light_dimmer{
+  display: none;
+}
+#light_rgb{
+  display: none;
+}
+#curtain_slider{
+  display: none;
+}

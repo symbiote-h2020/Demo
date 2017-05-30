@@ -148,9 +148,13 @@ function handleClickRow(e){
   }
   else{
     authorization_token = sessionStorage.getItem("authorization");
+    description = e.target.parentNode.getAttribute('description');
 
-    // sensors(e);
-    actuators(e);
+    if (description.indexOf('sensor') == -1){
+      actuators(e, description);
+    }
+    else
+      sensors(e);
     
   }
 }
@@ -186,7 +190,7 @@ function setMarker(lat, lon){
  
  // parse sensors data
  function parseSensor(data) {
-
+    console.log(data);
     $('#searchModal').modal('hide');
     // console.log(data)
     //if(data.locationLatitude && data.locationLongitude){
@@ -233,7 +237,7 @@ function setMarker(lat, lon){
       }
 
       var row = table
-      .row.add( [name, data.locationLongitude, data.locationLatitude, data.locationAltitude, platform, data.observedProperties, data.owner, locationName, data.resourceType] )
+      .row.add( [name, data.locationLongitude, data.locationLatitude, data.locationAltitude, platform, data.observedProperties, data.owner, locationName, data.description, data.resourceType] )
       .draw()
       .node();
       //
@@ -241,6 +245,7 @@ function setMarker(lat, lon){
       row.setAttribute("platform_id", data.platformId);
       row.setAttribute("identification", data.name);
       row.setAttribute("class", "clickable-row");
+      row.setAttribute("description", data.description);
       row.addEventListener('click', handleClickRow);
     //}
 
@@ -613,7 +618,7 @@ $(document).on("ready", function () {
   var close_graph = document.getElementById('close_graph');
 
  // var websocket = new WebSocket('ws://openiot.tel.fer.hr/notification');
-  startWebsockets();
+  // startWebsockets();
 
 });
 // Leaflet patch to make layer control scrollable on touch browsers
@@ -673,51 +678,82 @@ function startWebsockets(){
   });
 }
 
-function actuators(e){
-  var actuatorValue = 0;
-    // switch button
-    $("[name='my-checkbox']").bootstrapSwitch();
+function actuators(e, description){
+    var type = 4;
+    var actuatorValue = 0;
 
-    $('input[name="my-checkbox"]').on('switchChange.bootstrapSwitch', function(event, state) {
-      console.log(state); // true | false
-    });
+    document.getElementById('light_switch').style.display = 'none';
+    document.getElementById('light_dimmer').style.display = 'none';
+    document.getElementById('curtain_slider').style.display = 'none';
+    document.getElementById('light_rgb').style.display = 'none';
+    document.getElementById('actuator_explanation').innerHTML = '';
 
-    //sliders
-    var slider = new Slider('#ex1', {
-      formatter: function(value) {
-        console.log(value);
-        return 'Current value: ' + value;
-      }
-    });
+    if(type == 1){
+      document.getElementById('actuator_explanation').innerHTML = 'This actuator contains a light that can be turned on/off. <p></p>Use the switch to turn on/off the light of this actuator and the press "Actuate" to send the action.';
+      document.getElementById('light_switch').style.display = 'block';
 
-    var slider2 = new Slider('#ex2', {
-      formatter: function(value) {
-        console.log(value);
-        return 'Current value: ' + value;
-      }
-    });
+      // switch button
+      $("[name='my-checkbox']").bootstrapSwitch();
 
-    // rgb sliders
-    var RGBChange = function() {
-      $('#RGB').css('background', 'rgb('+r.getValue()+','+g.getValue()+','+b.getValue()+')')
-      console.log('rgb('+r.getValue()+','+g.getValue()+','+b.getValue()+')');
-    };
+      $('input[name="my-checkbox"]').on('switchChange.bootstrapSwitch', function(event, state) {
+        // console.log(state); // true | false
+      });
+    }
 
-    var r = $('#R').slider()
-      .on('slide', RGBChange)
-      .data('slider');
-    var g = $('#G').slider()
-        .on('slide', RGBChange)
-        .data('slider');
-    var b = $('#B').slider()
-        .on('slide', RGBChange)
-        .data('slider');
+    if(type == 2){
+      document.getElementById('actuator_explanation').innerHTML = 'This actuator contains a light whose intesity can by controlled. <p></p>Use the bar to control the light intensity of this actuator and the press "Actuate" to send the action.';
+      document.getElementById('light_dimmer').style.display = 'initial';
+
+      //sliders
+      $('#ex1').slider({
+        formatter: function(value) {
+          return 'Current value: ' + value;
+        }
+      });
+    }
+
+    if(type == 3){
+      document.getElementById('actuator_explanation').innerHTML = 'This actuator contains a curtain whose position can be controlled. <p></p>Use the bar to control the curtain position of this actuator and the press "Actuate" to send the action.';
+      document.getElementById('curtain_slider').style.display = 'initial';
+
+      $('#ex2').slider({
+        formatter: function(value) {
+          return 'Current value: ' + value;
+        }
+      });
+    }
+    
+
+    if (type == 4){
+      document.getElementById('actuator_explanation').innerHTML = 'This actuator contains a RGB light whose color can be changed. <p></p>Use the bar to change the light color of this actuator and the press "Actuate" to send the action.';
+      document.getElementById('light_rgb').style.display = 'initial';
+
+      // rgb sliders
+      var RGBChange = function() {
+        $('#RGB').css('background', 'rgb('+r.getValue()+','+g.getValue()+','+b.getValue()+')')
+        // console.log('rgb('+r.getValue()+','+g.getValue()+','+b.getValue()+')');
+      };
+
+      var r = $('#R').slider()
+          .on('slide', RGBChange)
+          .data('slider');
+      var g = $('#G').slider()
+          .on('slide', RGBChange)
+          .data('slider');
+      var b = $('#B').slider()
+          .on('slide', RGBChange)
+          .data('slider');
+    }
 
     $('#actuatorsModal').modal('show');
 }
 
+function sendActuation(){
+
+}
+
 function sensors(e){
-  var table = document.getElementById("historicTable");
+    var table = document.getElementById("historicTable");
 
     var table = $('#historicTable').DataTable();
     var rows = table.rows().remove().draw();
