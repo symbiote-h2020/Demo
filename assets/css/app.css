@@ -181,6 +181,9 @@ input[type="radio"], input[type="checkbox"] {
        width: 950px; /* New width for large modal */
      }
  }
+ .modal-body{
+    overflow-y: auto;
+}
 .modal-dialog {
     /*max-height:700px;*/
     /*width: 800px;*/
@@ -258,15 +261,16 @@ input[type="radio"], input[type="checkbox"] {
 .table {
   margin-bottom: 0px;
 }
-.notification{
+#notification{
   width: 300px;
   height: 100px;
   background-color:rgba(0, 0, 0, 0.5);
   border-radius: 4px;
   position: fixed;
   top: 100px;
-  /*right: 8px;*/
-  right: -300px;
+  right: 8px;
+  /*right: -300px;*/
+  display: none;
   z-index: 10000;
 }
 .navbar .navbar-brand {

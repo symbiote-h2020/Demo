@@ -10,7 +10,10 @@ var locations = Array();
 var resources_type = Array();
 
 var graphDict = {};
+var webSockets = {};
+var websockets_connection_error = 0;
 
+subscribedResources = Array();
 
 var search = Array();
 
@@ -598,6 +601,32 @@ resetLocation.addEventListener('click', function() {
   document.getElementById("resetLocation").style.display = "none";
 }, false);
 
+subscribeResource.addEventListener('click', function(event) {
+  subscribe_resource_id = event.target.getAttribute('resource_id');
+  subscribe_resource_name = event.target.getAttribute('resource_name');
+  subscribe_resource_platform = event.target.getAttribute('resource_platform');
+
+  resource_platform_websocket = webSockets[webSockets.indexOf(subscribe_resource_platform)];
+
+  if(subscribedResources.indexOf(subscribe_resource_id) == -1){
+    var result = subscriptions(subscribe_resource_id, subscribe_resource_name, subscribe_resource_platform, resource_platform_websocket, 1); //subscribe type = 1
+
+    if (result == 0){ //successfull subscribe
+      subscribedResources.push(subscribe_resource_id);
+    }else{
+
+    }
+  }else{
+    var result = subscriptions(subscribe_resource_id, subscribe_resource_name, subscribe_resource_platform, resource_platform_websocket, 0); //unsubscribe type = 0
+
+    if (result == 0){ //successfull unsubscribe
+      subscribedResources.pop(subscribe_resource_id);
+    }else{
+
+    }
+  }
+
+}, false);
 
 // ----- DOCUMENT READY -----
 $(document).on("ready", function () {
@@ -616,9 +645,9 @@ $(document).on("ready", function () {
   var login = document.getElementById('userLogin');
   var graphicalReport = document.getElementById('graphicalReport');
   var close_graph = document.getElementById('close_graph');
+  var subscribeResource = document.getElementById('subscribeResource');
 
- // var websocket = new WebSocket('ws://openiot.tel.fer.hr/notification');
-  // startWebsockets();
+  startWebsockets();
 
 });
 // Leaflet patch to make layer control scrollable on touch browsers
@@ -657,25 +686,99 @@ function checkSecond(sec) {
 }
 
 function startWebsockets(){
+  websockets_connection_error = 0;
+
   $.ajax({
       url: 'https://symbiote-dev.man.poznan.pl:8100/coreInterface/v1/get_available_aams',
       type: "GET",
       contentType: "application/json",
       cache: false,
       success: function(data){
-        console.log(data)
 
         for (var i = 0; i < data.length; i++){
-            platform_url = data[i].aamAddress
-            console.log(platform_url)
-        }
+            platform_id = data[i].aamInstanceId;
+            platform_url = data[i].aamAddress.split('//')[1].split('/')[0].split(':')[0];
 
+            if (!(platform_id in webSockets)){
+
+              var platform_websocket = new WebSocket('ws://' + platform_url + ':8102/notification');
+              platform_websocket = platform_websocket
+              webSockets[platform_id] = platform_websocket;
+
+              websocketsON(platform_websocket, platform_id, platform_url);
+            }
+        }
       },
       error:function(error){
         $("#loading").hide();
-        alert('Websocket connection problem. Refresh the page.')
+        alert('Problem getting URLS to start websocket connections.')
       }
   });
+}
+
+function subscriptions(subscribe_resource_id, subscribe_resource_name, subscribe_resource_platform, resource_platform_websocket, type){
+  var result = 0;
+
+  if(type == 0){ //unsubscribe
+    var msg = {
+      'action': 'UNSUBSCRIBE',
+      'ids':[subscribe_resource_id]
+    };
+
+    resource_platform_websocket.send(JSON.stringify(msg));
+
+    document.getElementById('subscribeResource').innerHTML = 'Subscribe'
+    result = 0;
+
+  }else{ //subscribe
+
+    var msg = {
+      'action': 'SUBSCRIBE',
+      'ids':[subscribe_resource_id]
+    };
+
+    resource_platform_websocket.send(JSON.stringify(msg));
+
+    document.getElementById('subscribeResource').innerHTML = 'Unsubscribe'
+    result = 1;
+  
+  }
+  return result;
+}
+
+function websocketsON(websocket, platform_id, platform_url){
+  $("#notification").show().delay(10000).fadeOut();
+
+  websocket.onopen = function (event) {
+    console.log('Connected to the ' + platform_id + 'websocket')
+  };
+
+  websocket.onerror=function(event){
+    // document.getElementById('errorModalTitle').innerHTML = 'Something went wrong, please refresh the page: <p></p>'
+    // document.getElementById('errorModalClose').style.display = 'none';
+
+    // $('#errorModal').modal({
+    //   backdrop: 'static',
+    //   keyboard: false
+    // }); 
+
+    // $('#searchModal').modal('hide');
+
+    // if (websockets_connection_error != 1 ){
+    //   document.getElementById('errorLabel').innerHTML += 'Problem connecting to the following platforms websocket: <p></p>'
+    //   websockets_connection_error = 1
+    // }
+
+    // document.getElementById('errorLabel').innerHTML += '- ' + platform_id + ' (' + platform_url + ') <p></p>';
+    // $('#errorModal').modal('show');
+
+  };
+
+  websocket.onmessage = function(event) {
+
+    var msg = JSON.parse(event.data);
+    alert("MESSAGE: " + msg);
+  };
 }
 
 function actuators(e, description){
@@ -697,6 +800,7 @@ function actuators(e, description){
 
       $('input[name="my-checkbox"]').on('switchChange.bootstrapSwitch', function(event, state) {
         // console.log(state); // true | false
+        actuatorValue = state;
       });
     }
 
@@ -707,6 +811,7 @@ function actuators(e, description){
       //sliders
       $('#ex1').slider({
         formatter: function(value) {
+          actuatorValue = value;
           return 'Current value: ' + value;
         }
       });
@@ -718,6 +823,7 @@ function actuators(e, description){
 
       $('#ex2').slider({
         formatter: function(value) {
+          actuatorValue = value;
           return 'Current value: ' + value;
         }
       });
@@ -731,6 +837,7 @@ function actuators(e, description){
       // rgb sliders
       var RGBChange = function() {
         $('#RGB').css('background', 'rgb('+r.getValue()+','+g.getValue()+','+b.getValue()+')')
+          actuatorValue = 'rgb('+r.getValue()+','+g.getValue()+','+b.getValue()+')';
         // console.log('rgb('+r.getValue()+','+g.getValue()+','+b.getValue()+')');
       };
 
@@ -774,7 +881,10 @@ function sensors(e){
           success: function(data){
             var name = e.target.parentNode.getAttribute('identification');
             object_url = data[e.target.parentNode.id]
-            console.log(data)
+
+            click_resource_id = e.target.parentNode.getAttribute('id');
+            click_resource_name = e.target.parentNode.getAttribute('identification');
+            click_resource_platform = e.target.parentNode.getAttribute('platform_id');
 
             // Get all platforms tokens
             $.ajax({
@@ -783,13 +893,11 @@ function sensors(e){
                 contentType: "application/json",
                 cache: false,
                 success: function(data){
-                  console.log(data)
 
                   for (var i = 0; i < data.length; i++){
                     if (data[i].aamInstanceId == platform_id)
                       get_token_url = data[i].aamAddress + '/request_foreign_token'
                   }
-                  console.log(get_token_url);
                   //Get the token using the returned url by the previous request
                   $.ajax({
                     url: get_token_url,
@@ -805,51 +913,55 @@ function sensors(e){
 
                       // Get the historical data for the clicked resource (using url returned by the firs request and the specific token for the pretended platform that the resource belogns)
                       $.ajax({
-                        url: object_url + "/Observations?$top=20",
+                        url: object_url + "/Observations",
                         type: "GET",
                         beforeSend: function(xhr){xhr.setRequestHeader('X-Auth-Token', resource_token);},
                         contentType: "application/json",
                         cache: false,
                         success: function(data){
-                        historical_data = JSON.parse(data)
-                        
-                        graphDict = {}
-                        $("#selectBox").empty();
+                          document.getElementById('subscribeResource').setAttribute('resource_id', click_resource_id);
+                          document.getElementById('subscribeResource').setAttribute('resource_name', click_resource_name);
+                          document.getElementById('subscribeResource').setAttribute('resource_platform', click_resource_platform);
 
-                        for (var i = 0; i < historical_data.length; i ++){
-                          if (historical_data[i]['location'])
-                            var latitude = historical_data[i]['location']['latitude']
-                          else
-                            var latitude = "NA"
+                          historical_data = JSON.parse(data)
                           
-                          if (historical_data[i]['location'])
-                            var longitude = historical_data[i]['location']['longitude']
-                          else
-                            var longitude = "NA"
+                          graphDict = {}
+                          $("#selectBox").empty();
 
-                          var observedProperty = historical_data[i]['obsValues'][0]['obsProperty']['label']
-                          var unit = historical_data[i]['obsValues'][0]['uom']['symbol']
-                          var measurementValue = historical_data[i]['obsValues'][0]['value']
-                          var samplingTime = historical_data[i]['samplingTime']
+                          for (var i = 0; i < historical_data.length; i ++){
+                            if (historical_data[i]['location'])
+                              var latitude = historical_data[i]['location']['latitude']
+                            else
+                              var latitude = "NA"
+                            
+                            if (historical_data[i]['location'])
+                              var longitude = historical_data[i]['location']['longitude']
+                            else
+                              var longitude = "NA"
 
-                          if (observedProperty in graphDict){
+                            var observedProperty = historical_data[i]['obsValues'][0]['obsProperty']['label']
+                            var unit = historical_data[i]['obsValues'][0]['uom']['symbol']
+                            var measurementValue = historical_data[i]['obsValues'][0]['value']
+                            var samplingTime = historical_data[i]['samplingTime']
+
+                            if (observedProperty in graphDict){
+                                graphDict[observedProperty].push([measurementValue, samplingTime]);
+                            }
+
+                            else{
+                              graphDict[observedProperty] = []
                               graphDict[observedProperty].push([measurementValue, samplingTime]);
+                              $("#selectBox").append('<option value="' + observedProperty + '">' + observedProperty + '</option>');}
+
+                            //console.log(graphDict);
+
+                            var table = $('#historicTable').DataTable();
+                            var row = table
+                            .row.add( [measurementValue, observedProperty, unit, latitude, longitude, type] )
+                            .draw()
+                            .node();
+
                           }
-
-                          else{
-                            graphDict[observedProperty] = []
-                            graphDict[observedProperty].push([measurementValue, samplingTime]);
-                            $("#selectBox").append('<option value="' + observedProperty + '">' + observedProperty + '</option>');}
-
-                          //console.log(graphDict);
-
-                          var table = $('#historicTable').DataTable();
-                          var row = table
-                          .row.add( [measurementValue, observedProperty, unit, latitude, longitude, type] )
-                          .draw()
-                          .node();
-
-                        }
 
                           $('#infoSensorModal').modal('show');
                           $('#infoSensorModalTitle').text(name  + " data")
@@ -859,6 +971,9 @@ function sensors(e){
                         error:function(){
                           $("#loading").hide();
                           // Error code goes here.
+                          document.getElementById('errorModalTitle').innerHTML = 'Something went wrong <p></p>'
+                          document.getElementById('errorModalClose').style.display = 'initial';
+
                           document.getElementById('errorLabel').innerHTML = 'It was not possible to get resource historical data. Please try again.'
                           $('#errorModal').modal('show');
                         }
@@ -868,6 +983,8 @@ function sensors(e){
                     error:function(error){
                       $("#loading").hide();
                       // Error code goes here.
+                      document.getElementById('errorModalTitle').innerHTML = 'Something went wrong <p></p>'
+                      document.getElementById('errorModalClose').style.display = 'initial';
                       document.getElementById('errorLabel').innerHTML = 'It was not possible to get resource historical data. Please try again.'
                       $('#errorModal').modal('show');
                       console.log(error);

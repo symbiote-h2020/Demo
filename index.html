@@ -224,12 +224,18 @@
           </div>
           </div>
           <div class="modal-footer">
+            <div class="col-md-6" style="padding:0">
 
-            <select id="selectBox" name="selectBox" class="pull-left" style="margin-right:1%; height:35px;">
-            </select>
-            
-            <button id="graphicalReport" class="btn btn-primary pull-left">Generate Graphical Report</button>
-            <button type="submit" class="btn btn-secondary" data-dismiss="modal">Close</button>
+              <select id="selectBox" name="selectBox" class="pull-left" style="margin-right:1%; height:35px;"></select>
+              
+              <button id="graphicalReport" class="btn btn-primary pull-left">Generate Graphical Report</button>
+
+            </div>
+            <div class="col-md-6" style="padding:0">
+              <button id="subscribeResource" class="btn btn-primary">Subscribe</button>
+              <button type="submit" class="btn btn-secondary" data-dismiss="modal">Close</button>              
+            </div>
+
           </div>
 
         </div><!-- /.modal-content -->
@@ -240,13 +246,13 @@
       <div class="modal-dialog" role="document">
         <div class="modal-content">
           <div class="modal-header">
-          <h4 class="modal-title">Something went wrong...</h4>
+          <h4 class="modal-title" id="errorModalTitle"></h4>
           </div>
           <div class="modal-body">
             <label id="errorLabel"></label>
           </div>
           <div class="modal-footer">
-            <button type="submit" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-secondary" data-dismiss="modal" id="errorModalClose">Close</button>
           </div>
 
         </div><!-- /.modal-content -->
@@ -270,9 +276,9 @@
       </div><!-- /.modal-dialog -->
     </div><!-- /.modal -->
 
-    <div class="notification">
+    <div id="notification">
       <div style="padding:3%; text-align:justified">
-              <label style="color:white; font-weight:lighter;">Resource 12345 from Platform X was updated! New historical data is now available!</label>
+        <label style="color:white; font-weight:lighter;">Resource 12345 from Platform X was updated! New historical data is now available!</label>
       </div>
     </div>
 
