@@ -397,12 +397,12 @@ input[type="radio"], input[type="checkbox"] {
 	background: #BABABA;
 }
 
-#RGB {
+/*#RGB {
 	height: 20px;
 	background: rgb(128, 128, 128);
-}
+}*/
 #RC .slider-selection {
-	background: #FF8282;
+	background: red;
 }
 #RC .slider-handle {
 	background: red;
@@ -414,7 +414,7 @@ input[type="radio"], input[type="checkbox"] {
 	background: green;
 }
 #BC .slider-selection {
-	background: #8283FF;
+	background: blue;
 }
 #BC .slider-handle {
 	border-bottom-color: blue;
@@ -433,5 +433,21 @@ input[type="radio"], input[type="checkbox"] {
   display: none;
 }
 #curtain_slider{
+  display: none;
+}
+
+#RGB{
+  background: rgb(128, 128, 128);
+  height: 85px;
+  width: 85px;
+  -webkit-border-radius: 85px;
+  -moz-border-radius: 85px;
+  border-radius: 85px;
+  border-style: solid 3px;
+  border-color: black;
+}
+
+
+#subscribeResource{
   display: none;
 }

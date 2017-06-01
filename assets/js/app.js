@@ -11,6 +11,7 @@ var resources_type = Array();
 
 var graphDict = {};
 var webSockets = {};
+var webSocketsErrorCount = {};
 var websockets_connection_error = 0;
 
 subscribedResources = Array();
@@ -152,13 +153,17 @@ function handleClickRow(e){
   else{
     authorization_token = sessionStorage.getItem("authorization");
     description = e.target.parentNode.getAttribute('description');
+    type = e.target.parentNode.getAttribute('type');
 
-    if (description.indexOf('sensor') == -1){
-      actuators(e, description);
+    if (type == 'Actuator'){
+      actuator_id = e.target.parentNode.getAttribute('id');
+      actuator_name = e.target.parentNode.getAttribute('identification');
+      actuator_platform_id = e.target.parentNode.getAttribute('platform_id');
+
+      actuators(e, description, actuator_id, actuator_name, actuator_platform_id);
     }
-    else
-      sensors(e);
-    
+    if (type == 'StationarySensor')
+      sensors(e, authorization_token);
   }
 }
 
@@ -175,7 +180,7 @@ function setMarker(lat, lon){
 
   marker.on('click', function(e) {
     var content = "<table class='table table-striped' cellspacing='0' <thead> <th>Longitude</th> <th>Latitude</th> </thead> <tbody> <tr> <td>" + e.latlng.lng + " </td> <td>" + e.latlng.lat + " </td> </tr></tbody></table> <p></p>"
-    content += "<table class='table table-hover table-striped' cellspacing='0'> <thead> <th>Sensor</th> <th>Platform</th> <th> Observed Properties </th> <th> Owner </th> <th> Location </th> <th> Type </th> </thead> <tbody> ";
+    content += "<table class='table table-hover table-striped' cellspacing='0'> <thead> <th>Sensor</th> <th>Platform</th> <th> Observed Properties </th> <th> Location </th> <th> Type </th> </thead> <tbody> ";
 
     for (i = 0; i < sensorsMarkers.length; i++){
       if(sensorsMarkers[i]._latlng.lat  == e.latlng.lat && sensorsMarkers[i]._latlng.lng  == e.latlng.lng){
@@ -193,7 +198,6 @@ function setMarker(lat, lon){
  
  // parse sensors data
  function parseSensor(data) {
-    console.log(data);
     $('#searchModal').modal('hide');
     // console.log(data)
     //if(data.locationLatitude && data.locationLongitude){
@@ -240,7 +244,7 @@ function setMarker(lat, lon){
       }
 
       var row = table
-      .row.add( [name, data.locationLongitude, data.locationLatitude, data.locationAltitude, platform, data.observedProperties, data.owner, locationName, data.description, data.resourceType] )
+      .row.add( [name, data.locationLongitude, data.locationLatitude, data.locationAltitude, platform, data.observedProperties, locationName, data.description, data.resourceType] )
       .draw()
       .node();
       //
@@ -249,6 +253,7 @@ function setMarker(lat, lon){
       row.setAttribute("identification", data.name);
       row.setAttribute("class", "clickable-row");
       row.setAttribute("description", data.description);
+      row.setAttribute("type", data.resourceType);
       row.addEventListener('click', handleClickRow);
     //}
 
@@ -606,18 +611,18 @@ subscribeResource.addEventListener('click', function(event) {
   subscribe_resource_name = event.target.getAttribute('resource_name');
   subscribe_resource_platform = event.target.getAttribute('resource_platform');
 
-  resource_platform_websocket = webSockets[webSockets.indexOf(subscribe_resource_platform)];
+  resource_platform_websocket = webSockets[subscribe_resource_platform];
 
   if(subscribedResources.indexOf(subscribe_resource_id) == -1){
-    var result = subscriptions(subscribe_resource_id, subscribe_resource_name, subscribe_resource_platform, resource_platform_websocket, 1); //subscribe type = 1
+    var result = subscriptions(subscribe_resource_id, subscribe_resource_platform, resource_platform_websocket, 1); //subscribe => type = 1
 
-    if (result == 0){ //successfull subscribe
+    if (result == 1){ //successfull subscribe
       subscribedResources.push(subscribe_resource_id);
     }else{
 
     }
   }else{
-    var result = subscriptions(subscribe_resource_id, subscribe_resource_name, subscribe_resource_platform, resource_platform_websocket, 0); //unsubscribe type = 0
+    var result = subscriptions(subscribe_resource_id, subscribe_resource_platform, resource_platform_websocket, 0); //unsubscribe => type = 0
 
     if (result == 0){ //successfull unsubscribe
       subscribedResources.pop(subscribe_resource_id);
@@ -688,35 +693,51 @@ function checkSecond(sec) {
 function startWebsockets(){
   websockets_connection_error = 0;
 
-  $.ajax({
-      url: 'https://symbiote-dev.man.poznan.pl:8100/coreInterface/v1/get_available_aams',
-      type: "GET",
-      contentType: "application/json",
-      cache: false,
-      success: function(data){
+  //{'aamInstanceId': 'SaMMY', 'aamAddress': 'http://sammyacht.com/paam'}, 
+  data = [{'aamInstanceId': 'NXW-symphony-1', 'aamAddress': 'https://symbiote.nextworks.it/paam'}];
 
-        for (var i = 0; i < data.length; i++){
-            platform_id = data[i].aamInstanceId;
-            platform_url = data[i].aamAddress.split('//')[1].split('/')[0].split(':')[0];
+  for (var i = 0; i < data.length; i++){
+      platform_id = data[i].aamInstanceId;
+      platform_url = data[i].aamAddress.split('//')[1].split('/')[0].split(':')[0];
 
-            if (!(platform_id in webSockets)){
+      if (!(platform_id in webSockets)){
 
-              var platform_websocket = new WebSocket('ws://' + platform_url + ':8102/notification');
-              platform_websocket = platform_websocket
-              webSockets[platform_id] = platform_websocket;
-
-              websocketsON(platform_websocket, platform_id, platform_url);
-            }
-        }
-      },
-      error:function(error){
-        $("#loading").hide();
-        alert('Problem getting URLS to start websocket connections.')
+        platform_websocket = new WebSocket('wss://' + platform_url + ':8102/notification');
+        webSockets[platform_id] = platform_websocket;
       }
-  });
+      websocketsON(platform_websocket, platform_id, platform_url);
+  }
+
+  // $.ajax({
+  //     url: 'https://symbiote-dev.man.poznan.pl:8100/coreInterface/v1/get_available_aams',
+  //     type: "GET",
+  //     contentType: "application/json",
+  //     cache: false,
+  //     success: function(data){
+  //       var platform_websocket = '';
+  //       console.log(data);
+
+  //       for (var i = 0; i < data.length; i++){
+  //           platform_id = data[i].aamInstanceId;
+  //           platform_url = data[i].aamAddress.split('//')[1].split('/')[0].split(':')[0];
+
+  //           if (!(platform_id in webSockets)){
+
+  //             platform_websocket = new WebSocket('wss://' + platform_url + ':8103/notification');
+  //             webSockets[platform_id] = platform_websocket;
+  //           }
+  //           websocketsON(platform_websocket, platform_id, platform_url);
+  //       }
+
+  //     },
+  //     error:function(error){
+  //       $("#loading").hide();
+  //       alert('Problem getting URLS to start websocket connections.')
+  //     }
+  // });
 }
 
-function subscriptions(subscribe_resource_id, subscribe_resource_name, subscribe_resource_platform, resource_platform_websocket, type){
+function subscriptions(subscribe_resource_id, subscribe_resource_platform, resource_platform_websocket, type){
   var result = 0;
 
   if(type == 0){ //unsubscribe
@@ -726,7 +747,7 @@ function subscriptions(subscribe_resource_id, subscribe_resource_name, subscribe
     };
 
     resource_platform_websocket.send(JSON.stringify(msg));
-
+      
     document.getElementById('subscribeResource').innerHTML = 'Subscribe'
     result = 0;
 
@@ -747,13 +768,41 @@ function subscriptions(subscribe_resource_id, subscribe_resource_name, subscribe
 }
 
 function websocketsON(websocket, platform_id, platform_url){
-  $("#notification").show().delay(10000).fadeOut();
 
   websocket.onopen = function (event) {
-    console.log('Connected to the ' + platform_id + 'websocket')
+    console.log('Connected to the ' + platform_id + ' websocket')
+    webSocketsErrorCount[platform_id] = 0;
+
+    setInterval(function(){ 
+      // console.log("ACK")
+      var msg = {
+        '': ''
+      };
+      
+      resource_platform_websocket = webSockets[platform_id];
+      resource_platform_websocket.send(JSON.stringify(msg));
+
+    }, 1000);
   };
 
+  websocket.onclose = function (event){
+    console.log("CLOSE");
+
+    for (var key in webSockets){
+      //&& webSocketsErrorCount[key] != 10
+      if (webSockets[key] == event.target ){
+        // if (!(key in webSocketsErrorCount)){
+        //   webSocketsErrorCount[key] = 0;
+        // }else
+        //   webSocketsErrorCount[key] += 1;
+        delete webSockets[key];
+        startWebsockets();
+      }
+    }
+  }
+
   websocket.onerror=function(event){
+    console.log("ERROR");
     // document.getElementById('errorModalTitle').innerHTML = 'Something went wrong, please refresh the page: <p></p>'
     // document.getElementById('errorModalClose').style.display = 'none';
 
@@ -775,14 +824,14 @@ function websocketsON(websocket, platform_id, platform_url){
   };
 
   websocket.onmessage = function(event) {
-
+    $("#notification").show().delay(10000).fadeOut();
+    console.log("MESSAGE")
     var msg = JSON.parse(event.data);
     alert("MESSAGE: " + msg);
   };
 }
 
-function actuators(e, description){
-    var type = 4;
+function actuators(e, description, actuator_id, actuator_name, actuator_platform_id){
     var actuatorValue = 0;
 
     document.getElementById('light_switch').style.display = 'none';
@@ -791,7 +840,8 @@ function actuators(e, description){
     document.getElementById('light_rgb').style.display = 'none';
     document.getElementById('actuator_explanation').innerHTML = '';
 
-    if(type == 1){
+
+    if(description == 1){
       document.getElementById('actuator_explanation').innerHTML = 'This actuator contains a light that can be turned on/off. <p></p>Use the switch to turn on/off the light of this actuator and the press "Actuate" to send the action.';
       document.getElementById('light_switch').style.display = 'block';
 
@@ -804,7 +854,7 @@ function actuators(e, description){
       });
     }
 
-    if(type == 2){
+    if(description == 'dimmer'){
       document.getElementById('actuator_explanation').innerHTML = 'This actuator contains a light whose intesity can by controlled. <p></p>Use the bar to control the light intensity of this actuator and the press "Actuate" to send the action.';
       document.getElementById('light_dimmer').style.display = 'initial';
 
@@ -817,7 +867,7 @@ function actuators(e, description){
       });
     }
 
-    if(type == 3){
+    if(description == 'Tenda'){
       document.getElementById('actuator_explanation').innerHTML = 'This actuator contains a curtain whose position can be controlled. <p></p>Use the bar to control the curtain position of this actuator and the press "Actuate" to send the action.';
       document.getElementById('curtain_slider').style.display = 'initial';
 
@@ -830,7 +880,7 @@ function actuators(e, description){
     }
     
 
-    if (type == 4){
+    if (description == 'rgb light'){
       document.getElementById('actuator_explanation').innerHTML = 'This actuator contains a RGB light whose color can be changed. <p></p>Use the bar to change the light color of this actuator and the press "Actuate" to send the action.';
       document.getElementById('light_rgb').style.display = 'initial';
 
@@ -859,7 +909,7 @@ function sendActuation(){
 
 }
 
-function sensors(e){
+function sensors(e, authorization_token){
     var table = document.getElementById("historicTable");
 
     var table = $('#historicTable').DataTable();
@@ -894,10 +944,17 @@ function sensors(e){
                 cache: false,
                 success: function(data){
 
+                  //TEMP CODE
+                  var address = 'https://' + object_url.split('//')[1].split('/')[0];    
+                  console.log(address);
+                  //TEMP CODE
+
                   for (var i = 0; i < data.length; i++){
                     if (data[i].aamInstanceId == platform_id)
-                      get_token_url = data[i].aamAddress + '/request_foreign_token'
+                      // get_token_url = data[i].aamAddress + '/request_foreign_token';
+                      get_token_url = address + '/paam/request_foreign_token'; //TEMP CODE
                   }
+
                   //Get the token using the returned url by the previous request
                   $.ajax({
                     url: get_token_url,
@@ -919,9 +976,22 @@ function sensors(e){
                         contentType: "application/json",
                         cache: false,
                         success: function(data){
+                          if (subscribedResources.indexOf(click_resource_id) != -1)
+                            document.getElementById('subscribeResource').innerHTML = "Unsubscribe";
+                          else
+                            document.getElementById('subscribeResource').innerHTML = "Subscribe";
+
                           document.getElementById('subscribeResource').setAttribute('resource_id', click_resource_id);
                           document.getElementById('subscribeResource').setAttribute('resource_name', click_resource_name);
                           document.getElementById('subscribeResource').setAttribute('resource_platform', click_resource_platform);
+                          
+
+                          for (var key in webSockets){
+                            if (webSockets[key] == click_resource_platform)
+                              document.getElementById('subscribeResource').style.display = 'inital';
+                              break;
+                          }
+
 
                           historical_data = JSON.parse(data)
                           
@@ -987,7 +1057,6 @@ function sensors(e){
                       document.getElementById('errorModalClose').style.display = 'initial';
                       document.getElementById('errorLabel').innerHTML = 'It was not possible to get resource historical data. Please try again.'
                       $('#errorModal').modal('show');
-                      console.log(error);
                     }
                   });
 

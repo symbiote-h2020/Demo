@@ -334,26 +334,32 @@
             <div id="light_dimmer">
               <input id="ex1" data-slider-id='ex1Slider' type="text" data-slider-min="0" data-slider-max="100" data-slider-step="1" data-slider-value="50"/>
             </div>
-            
-            <div id="light_rgb">
-              <p>
-              <b>R</b> <input type="text" class="span2" value="" data-slider-min="0" data-slider-max="255" data-slider-step="1" data-slider-value="128" data-slider-id="RC" id="R" data-slider-tooltip="hide" data-slider-handle="square" />
-              </p>
-              <p>
-              <b>G</b> <input type="text" class="span2" value="" data-slider-min="0" data-slider-max="255" data-slider-step="1" data-slider-value="128" data-slider-id="GC" id="G" data-slider-tooltip="hide" data-slider-handle="round" />
-              </p>
-              <p>
-              <b>B</b> <input type="text" class="span2" value="" data-slider-min="0" data-slider-max="255" data-slider-step="1" data-slider-value="128" data-slider-id="BC" id="B" data-slider-tooltip="hide" data-slider-handle="triangle" />
-              </p>
-              <div id="RGB"></div>
-              <p></p>
-            </div>
-            
+
+                        
             <div id="curtain_slider">
               <input id="ex2" data-slider-id='ex2Slider' type="text" data-slider-min="0" data-slider-max="100" data-slider-step="1" data-slider-value="50"/>
             </div>
+            <p></p>
+            
+            <div id="light_rgb" class="col-md-12 col-sm-12">
+              <p></p>
+              <div class="col-sm-4 col-md-4">
+                <p>
+                <b>R</b> <input type="text" class="span2" value="" data-slider-min="0" data-slider-max="255" data-slider-step="1" data-slider-value="128" data-slider-id="RC" id="R" data-slider-tooltip="hide" data-slider-handle="round" />
+                </p>
+                <p>
+                <b>G</b> <input type="text" class="span2" value="" data-slider-min="0" data-slider-max="255" data-slider-step="1" data-slider-value="128" data-slider-id="GC" id="G" data-slider-tooltip="hide" data-slider-handle="round" />
+                </p>
+                <p>
+                <b>B</b> <input type="text" class="span2" value="" data-slider-min="0" data-slider-max="255" data-slider-step="1" data-slider-value="128" data-slider-id="BC" id="B" data-slider-tooltip="hide" data-slider-handle="round" />
+                </p>
+              </div>
+              <div class="col-sm-8 col-md-8">
+                <div id="RGB"></div>
+              </div>
+            </div>
 
-          <div class="modal-footer">
+          <div class="modal-footer col-md-12 col-sm-12">
             <button id="sendActutation" class="btn btn-primary">Actuate</button>
             <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
           </div>
