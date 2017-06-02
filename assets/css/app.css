@@ -263,7 +263,7 @@ input[type="radio"], input[type="checkbox"] {
 }
 #notification{
   width: 300px;
-  height: 100px;
+  height: 110px;
   background-color:rgba(0, 0, 0, 0.5);
   border-radius: 4px;
   position: fixed;
