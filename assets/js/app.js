@@ -14,6 +14,8 @@ var webSockets = {};
 var webSocketsErrorCount = {};
 var websockets_connection_error = 0;
 
+var actuator_current_value = 0;
+
 subscribedResources = Array();
 
 var search = Array();
@@ -155,8 +157,8 @@ function handleClickRow(e){
     description = e.target.parentNode.getAttribute('description');
     type = e.target.parentNode.getAttribute('type');
 
-    if (type == 'Actuator'){
-      console.log("actuator")
+    if (type == 'ActuatingService'){
+      // console.log("actuator")
       actuator_id = e.target.parentNode.getAttribute('id');
       actuator_name = e.target.parentNode.getAttribute('identification');
       actuator_platform_id = e.target.parentNode.getAttribute('platform_id');
@@ -634,8 +636,11 @@ subscribeResource.addEventListener('click', function(event) {
 
 }, false);
 
+
+
 // ----- DOCUMENT READY -----
 $(document).on("ready", function () {
+  startWebsockets();
 
   $("#loading").hide();
 
@@ -652,8 +657,13 @@ $(document).on("ready", function () {
   var graphicalReport = document.getElementById('graphicalReport');
   var close_graph = document.getElementById('close_graph');
   var subscribeResource = document.getElementById('subscribeResource');
+  var actuateButton = document.getElementById('sendActuation');
 
-  startWebsockets();
+  actuateButton.addEventListener('click', function(event) {
+    actuator_id = event.target.getAttribute('actuator_id');
+
+    sendActuation(actuator_id, type, event);
+  }, false);
 
 });
 // Leaflet patch to make layer control scrollable on touch browsers
@@ -696,7 +706,7 @@ function startWebsockets(){
 
   //{'aamInstanceId': 'SaMMY', 'aamAddress': 'http://sammyacht.com/paam'}, 
   // {'aamInstanceId': 'NXW-symphony-1', 'aamAddress': 'https://symbiote.nextworks.it/paam'}
-  data = [{'aamInstanceId': 'UNIZG-symbiote-1', 'aamAddress': 'https://161.53.19.121/paam'}];
+  data = [{'aamInstanceId': 'NXW-symphony-1', 'aamAddress': 'https://symbiote.nextworks.it/paam'}, {'aamInstanceId': 'UNIZG-symbiote-1', 'aamAddress': 'https://161.53.19.121/paam'}];
 
   for (var i = 0; i < data.length; i++){
       platform_id = data[i].aamInstanceId;
@@ -776,13 +786,13 @@ function websocketsON(websocket, platform_id, platform_url){
     console.log('Connected to ' + platform_id)
     //webSocketsErrorCount[platform_id] = 0;
 
-      var msg = {
-        'action': 'SUBSCRIBE',
-        'ids':['593126ee25d5cf090c847d54']
-      };
+      // var msg = {
+      //   'action': 'SUBSCRIBE',
+      //   'ids':['593126ee25d5cf090c847d54']
+      // };
       
-      resource_platform_websocket = webSockets[platform_id];
-      resource_platform_websocket.send(JSON.stringify(msg));
+      // resource_platform_websocket = webSockets[platform_id];
+      // resource_platform_websocket.send(JSON.stringify(msg));
 
 
     // setInterval(function(){ 
@@ -842,9 +852,14 @@ function websocketsON(websocket, platform_id, platform_url){
 
     var msg = JSON.parse(event.data);
 
-    console.log(msg)
+    // console.log(msg)
 
     notify_data['Resource'] = msg.resourceId;
+
+    if(msg.obsValues[0]){
+      notify_data['Property'] = msg.obsValues[0].obsProperty.label;
+      notify_data['Measurement'] = Number(msg.obsValues[0].value).toFixed(2) + ' ' + msg.obsValues[0].uom.symbol;
+    }
 
     if(msg.location.latitude && msg.location.longitude){
       notify_data['Coordinates'] = msg.location.longitude + ';' + msg.location.latitude;
@@ -873,7 +888,91 @@ function websocketsON(websocket, platform_id, platform_url){
 }
 function actuators(e, description, actuator_id, actuator_name, actuator_platform_id){
 
-    var actuatorValue = 0;
+  var row_url = "https://symbiote-dev.man.poznan.pl:8100/coreInterface/v1/resourceUrls?id=" + actuator_id;
+
+  $("#loading").show();
+
+    // Get resource url
+  $.ajax({
+        url: row_url,
+        type: "GET",
+        beforeSend: function(xhr){xhr.setRequestHeader('X-Auth-Token', authorization_token);},
+        contentType: "application/json",
+        cache: false,
+        success: function(data){
+          var name = e.target.parentNode.getAttribute('identification');
+          object_url = data[e.target.parentNode.id]
+
+          if(data.error){
+            document.getElementById('errorModalTitle').innerHTML = 'Something went wrong <p></p>'
+            document.getElementById('errorModalClose').style.display = 'initial';
+
+            document.getElementById('errorLabel').innerHTML = 'Your session has expired. Please login and try again.'
+            $('#errorModal').modal('show');
+  
+          }else{
+            click_resource_id = e.target.parentNode.getAttribute('id');
+            click_resource_name = e.target.parentNode.getAttribute('identification');
+            click_resource_platform = e.target.parentNode.getAttribute('platform_id');
+
+            // Get all platforms tokens
+            $.ajax({
+                url: 'https://symbiote-dev.man.poznan.pl:8100/coreInterface/v1/get_available_aams',
+                type: "GET",
+                contentType: "application/json",
+                cache: false,
+                success: function(data){
+                  //TEMP CODE
+                  var address = 'https://' + object_url.split('//')[1].split('/')[0];    
+                  //TEMP CODE
+
+                  for (var i = 0; i < data.length; i++){
+                    if (data[i].aamInstanceId == actuator_platform_id)
+                      // get_token_url = data[i].aamAddress + '/request_foreign_token';
+                      get_token_url = address + '/paam/request_foreign_token'; //TEMP CODE
+                  }
+
+                  //Get the token using the returned url by the previous request
+                  $.ajax({
+                    url: get_token_url,
+                    type: "POST",
+                    beforeSend: function(xhr){xhr.setRequestHeader('X-Auth-Token', authorization_token);},
+                    contentType: "application/json",
+                    cache: false,
+                    success: function(data, status, xhr){
+                      var resource_token = xhr.getResponseHeader("X-Auth-Token");
+                    
+                      document.getElementById('sendActuation').setAttribute('platform_request', resource_token);
+                      $('#actuatorsModal').modal('show');
+                    },
+                    error:function(error){
+                      $("#loading").hide();
+                      // Error code goes here.
+                      document.getElementById('errorModalTitle').innerHTML = 'Something went wrong <p></p>'
+                      document.getElementById('errorModalClose').style.display = 'initial';
+                      document.getElementById('errorLabel').innerHTML = 'It was not possible to access to this actuator. Please try again later.'
+                      $('#errorModal').modal('show');
+                    }
+                  });
+
+                },
+                error:function(error){
+                  $("#loading").hide();
+                  // Error code goes here.
+                }
+            });
+            
+          }
+        },
+        error:function(data){
+          //console.log(data)
+          $("#loading").hide();
+          // Error code goes here.
+          document.getElementById('errorLabel').innerHTML = 'It was not possible to access to this actuator. Please try again later.'
+          $('#errorModal').modal('show');
+        }
+    });
+    document.getElementById('sendActuation').setAttribute('actuator_id', actuator_id);
 
     document.getElementById('light_switch').style.display = 'none';
     document.getElementById('light_dimmer').style.display = 'none';
@@ -891,7 +990,7 @@ function actuators(e, description, actuator_id, actuator_name, actuator_platform
 
       $('input[name="my-checkbox"]').on('switchChange.bootstrapSwitch', function(event, state) {
         // console.log(state); // true | false
-        actuatorValue = state;
+        actuator_current_value = state;
       });
     }
 
@@ -903,7 +1002,7 @@ function actuators(e, description, actuator_id, actuator_name, actuator_platform
       //sliders
       $('#ex1').slider({
         formatter: function(value) {
-          actuatorValue = value;
+          actuator_current_value = value;
           return 'Current value: ' + value;
         }
       });
@@ -915,7 +1014,7 @@ function actuators(e, description, actuator_id, actuator_name, actuator_platform
 
       $('#ex2').slider({
         formatter: function(value) {
-          actuatorValue = value;
+          actuator_current_value = value;
           return 'Current value: ' + value;
         }
       });
@@ -929,7 +1028,7 @@ function actuators(e, description, actuator_id, actuator_name, actuator_platform
       // rgb sliders
       var RGBChange = function() {
         $('#RGB').css('background', 'rgb('+r.getValue()+','+g.getValue()+','+b.getValue()+')')
-          actuatorValue = 'rgb('+r.getValue()+','+g.getValue()+','+b.getValue()+')';
+          actuator_current_value = getValue()+':'+g.getValue()+':'+b.getValue();
         // console.log('rgb('+r.getValue()+','+g.getValue()+','+b.getValue()+')');
       };
 
@@ -943,12 +1042,41 @@ function actuators(e, description, actuator_id, actuator_name, actuator_platform
           .on('slide', RGBChange)
           .data('slider');
     }
-
-    $('#actuatorsModal').modal('show');
 }
 
-function sendActuation(){
+function sendActuation(actuator_id, type, event){
 
+  if (type == 'rgb'){
+    act_data ={
+            "inputParameters": [
+                {"name": "luminousEfficacy", "value": actuator_current_value.split(':')[0].toString()},
+                {"name": "luminousExposure", "value": actuator_current_value.split(':')[1].toString()},
+                {"name": "luminousFlux", "value": actuator_current_value.split(':')[2].toString()}
+              ]
+            }
+    
+  }else{
+   act_data = {"inputParameters": [{"name": "quantityOfLight", "value": actuator_current_value.toString()}]};
+  }
+
+  var auth_token = (event.target.getAttribute('platform_request'));
+  console.log(auth_token);
+
+  $.ajax({
+    url: "https://symbiote.nextworks.it:8102/rap/ActuatingServices('" + actuator_id +  "')",
+    beforeSend: function(xhr){xhr.setRequestHeader('X-Auth-Token', auth_token);},
+    data: JSON.stringify(act_data),
+    type: "PUT",
+    contentType: "application/json",
+    cache: false,
+    success: function(res, status, xhr) { 
+      console.log(res, status);
+    },
+    error:function(error){
+      // TODO add error message
+
+    }
+  });
 }
 
 function sensors(e, authorization_token){
