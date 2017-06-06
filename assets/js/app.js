@@ -658,11 +658,57 @@ $(document).on("ready", function () {
   var close_graph = document.getElementById('close_graph');
   var subscribeResource = document.getElementById('subscribeResource');
   var actuateButton = document.getElementById('sendActuation');
+  var closeSendActuation = document.getElementById('closeSendActuation');
 
   actuateButton.addEventListener('click', function(event) {
     actuator_id = event.target.getAttribute('actuator_id');
+    type_desc = event.target.getAttribute('actuator_desc');
+    
+    sendActuation(actuator_id, type_desc, event);
 
-    sendActuation(actuator_id, type, event);
+    if(type_desc == 'rgb light'){
+      actuator_current_value = '128:128:128:0.5';
+
+      $("#R").slider('destroy');
+      $("#G").slider('destroy');
+      $("#B").slider('destroy');
+      $("#A").slider('destroy');
+    }
+    if (type_desc == 'dimmer'){
+      actuator_current_value = '128';
+
+      $("#ex1").slider('destroy');
+    }
+    if(type_desc == 'Tenda'){
+      actuator_current_value = '128';
+
+      $("#ex2").slider('destroy');
+      
+    }
+  }, false);
+
+  closeSendActuation.addEventListener('click', function(event) {
+    type_desc = event.target.getAttribute('actuator_desc');
+
+    if(type_desc == 'rgb light'){
+      actuator_current_value = '128:128:128:0.5';
+
+      $("#R").slider('destroy');
+      $("#G").slider('destroy');
+      $("#B").slider('destroy');
+      $("#A").slider('destroy');
+    }
+    if (type_desc == 'dimmer'){
+      actuator_current_value = '128';
+
+      $("#ex1").slider('destroy');
+    }
+    if(type_desc == 'Tenda'){
+      actuator_current_value = '128';
+
+      $("#ex2").slider('destroy');
+      
+    }
   }, false);
 
 });
@@ -973,6 +1019,8 @@ function actuators(e, description, actuator_id, actuator_name, actuator_platform
         }
     });
     document.getElementById('sendActuation').setAttribute('actuator_id', actuator_id);
+    document.getElementById('sendActuation').setAttribute('actuator_desc', description);
+    document.getElementById('closeSendActuation').setAttribute('actuator_desc', description);
 
     document.getElementById('light_switch').style.display = 'none';
     document.getElementById('light_dimmer').style.display = 'none';
@@ -995,7 +1043,6 @@ function actuators(e, description, actuator_id, actuator_name, actuator_platform
     }
 
     if(description == 'dimmer'){
-      console.log(description)
       document.getElementById('actuator_explanation').innerHTML = 'This actuator contains a light whose intesity can by controlled. <p></p>Use the bar to control the light intensity of this actuator and the press "Actuate" to send the action.';
       document.getElementById('light_dimmer').style.display = 'initial';
 
@@ -1020,38 +1067,41 @@ function actuators(e, description, actuator_id, actuator_name, actuator_platform
       });
     }
     
-
     if (description == 'rgb light'){
       document.getElementById('actuator_explanation').innerHTML = 'This actuator contains a RGB light whose color can be changed. <p></p>Use the bar to change the light color of this actuator and the press "Actuate" to send the action.';
       document.getElementById('light_rgb').style.display = 'initial';
 
       // rgb sliders
       var RGBChange = function() {
-        $('#RGB').css('background', 'rgb('+r.getValue()+','+g.getValue()+','+b.getValue()+')')
-          actuator_current_value = getValue()+':'+g.getValue()+':'+b.getValue();
-        // console.log('rgb('+r.getValue()+','+g.getValue()+','+b.getValue()+')');
+        $('#RGB').css('background', 'rgba('+r.getValue()+','+g.getValue()+','+b.getValue()+','+a.getValue()+ ')')
+          actuator_current_value = r.getValue()+':'+g.getValue()+':'+b.getValue()+':'+a.getValue();
+          //console.log('rgb('+r.getValue()+','+g.getValue()+','+b.getValue()+','+a.getValue()+ ')');
       };
 
-      var r = $('#R').slider()
+      r = $('#R').slider()
           .on('slide', RGBChange)
           .data('slider');
-      var g = $('#G').slider()
+      g = $('#G').slider()
           .on('slide', RGBChange)
           .data('slider');
-      var b = $('#B').slider()
+      b = $('#B').slider()
           .on('slide', RGBChange)
           .data('slider');
+      a = $('#A').slider()
+          .on('slide', RGBChange)
+          .data('slider')
     }
 }
 
 function sendActuation(actuator_id, type, event){
 
-  if (type == 'rgb'){
+  if (type == 'rgb light'){
     act_data ={
             "inputParameters": [
                 {"name": "luminousEfficacy", "value": actuator_current_value.split(':')[0].toString()},
                 {"name": "luminousExposure", "value": actuator_current_value.split(':')[1].toString()},
-                {"name": "luminousFlux", "value": actuator_current_value.split(':')[2].toString()}
+                {"name": "luminousFlux", "value": actuator_current_value.split(':')[2].toString()},
+                {"name": "luminousIntensity", "value": actuator_current_value.split(':')[3].toString()}
               ]
             }
     
@@ -1060,14 +1110,15 @@ function sendActuation(actuator_id, type, event){
   }
 
   var auth_token = (event.target.getAttribute('platform_request'));
-  console.log(auth_token);
+  console.log(act_data);
 
   $.ajax({
     url: "https://symbiote.nextworks.it:8102/rap/ActuatingServices('" + actuator_id +  "')",
-    beforeSend: function(xhr){xhr.setRequestHeader('X-Auth-Token', auth_token);},
+    // beforeSend: function(xhr){xhr.setRequestHeader('X-Auth-Token', auth_token);},
     data: JSON.stringify(act_data),
     type: "PUT",
-    contentType: "application/json",
+    contentType: "json",
+    dataType: "json",
     cache: false,
     success: function(res, status, xhr) { 
       console.log(res, status);
@@ -1077,6 +1128,8 @@ function sendActuation(actuator_id, type, event){
 
     }
   });
+
+  $('#actuatorsModal').modal('hide');
 }
 
 function sensors(e, authorization_token){

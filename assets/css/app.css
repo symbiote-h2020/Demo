@@ -419,7 +419,13 @@ input[type="radio"], input[type="checkbox"] {
 #BC .slider-handle {
 	border-bottom-color: blue;
 }
-#R, #G, #B {
+#AC .slider-selection {
+	background: white;
+}
+#AC .slider-handle {
+	border-bottom-color: white;
+}
+#R, #G, #B, #A {
 	width: 300px;
 }
 
@@ -438,11 +444,11 @@ input[type="radio"], input[type="checkbox"] {
 
 #RGB{
   background: rgb(128, 128, 128);
-  height: 85px;
-  width: 85px;
-  -webkit-border-radius: 85px;
-  -moz-border-radius: 85px;
-  border-radius: 85px;
+  height: 95px;
+  width: 95px;
+  -webkit-border-radius: 95px;
+  -moz-border-radius: 95px;
+  border-radius: 95px;
   border-style: solid 3px;
   border-color: black;
 }
