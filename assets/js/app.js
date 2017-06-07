@@ -1256,11 +1256,26 @@ function sensors(e, authorization_token){
                                 var longitude = historical_data[i]['location']['longitude']
                               else
                                 var longitude = "NA"
+                              
+                              if (historical_data[i]['obsValues'][0]['obsProperty']['label'])
+                                var observedProperty = historical_data[i]['obsValues'][0]['obsProperty']['label']
+                              else
+                                var observedProperty = "NA"
+                              
+                              if (historical_data[i]['obsValues'][0]['uom']['symbol'])
+                                var unit = historical_data[i]['obsValues'][0]['uom']['symbol']
+                              else
+                                var unit = "NA"
 
-                              var observedProperty = historical_data[i]['obsValues'][0]['obsProperty']['label']
-                              var unit = historical_data[i]['obsValues'][0]['uom']['symbol']
-                              var measurementValue = historical_data[i]['obsValues'][0]['value']
-                              var samplingTime = historical_data[i]['samplingTime']
+                              if (historical_data[i]['obsValues'][0]['value'])
+                                var measurementValue = historical_data[i]['obsValues'][0]['value']
+                              else
+                                var measurementValue = "NA"
+                              
+                              if (historical_data[i]['samplingTime'])
+                                var samplingTime = historical_data[i]['samplingTime']
+                              else 
+                                var samplingTime = "NA"
 
                               if (observedProperty in graphDict){
                                   graphDict[observedProperty].push([measurementValue, samplingTime]);
