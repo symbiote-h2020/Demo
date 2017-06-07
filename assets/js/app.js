@@ -185,8 +185,8 @@ function setMarker(lat, lon){
     var content = "<table class='table table-striped' cellspacing='0' <thead> <th>Longitude</th> <th>Latitude</th> </thead> <tbody> <tr> <td>" + e.latlng.lng + " </td> <td>" + e.latlng.lat + " </td> </tr></tbody></table> <p></p>"
     content += "<table class='table table-hover table-striped' cellspacing='0'> <thead> <th>Sensor</th> <th>Platform</th> <th> Observed Properties </th> <th> Location </th> <th> Type </th> </thead> <tbody> ";
 
-    for (i = 0; i < sensorsMarkers.length; i++){
-      if(sensorsMarkers[i]._latlng.lat  == e.latlng.lat && sensorsMarkers[i]._latlng.lng  == e.latlng.lng){
+    for (i = 0; i < coordinates.length; i++){
+      if(coordinates[i][0] == e.latlng.lat && coordinates[i][1] == e.latlng.lng){
         content += "<tr><td>" + sensorsName[i] + "</td>" + "<td>" + platformsName[i] + "</td>" + "<td>" + obsProperties[i] + "</td>"+ "<td>" + locations[i] + "</td><td>"+ resources_type[i] + "</td></tr>"
       }
     }
@@ -202,14 +202,15 @@ function setMarker(lat, lon){
  // parse sensors data
  function parseSensor(data) {
     $('#searchModal').modal('hide');
-    // console.log(data)
     //if(data.locationLatitude && data.locationLongitude){
 
       var currentCoordinates = Array();
+      
       currentCoordinates.push(data.locationLatitude);
       currentCoordinates.push(data.locationLongitude);
       coordinates.push(currentCoordinates);
 
+      
       // var bounds = new L.LatLngBounds(coordinates);
       // map.fitBounds(bounds);
 
@@ -220,6 +221,8 @@ function setMarker(lat, lon){
       locations.push(data.locationName);
       type = data.resourceType[0].split('#')
       resources_type.push(type[type.length-1]);
+
+      // console.log(owners.length, sensorsName.length, platformsName.length, obsProperties.length, locations.length, type.length, resources_type.length, coordinates.length);
 
       if(data.locationLatitude !== null && data.locationLongitude !== null){
         setMarker(data.locationLatitude, data.locationLongitude);
@@ -448,8 +451,13 @@ searchTopBar.addEventListener('click', function() {
 
 
 userLogin.addEventListener('click', function(){
-  if (!$('#username').val() || !$('#password').val())
-    alert("missing credentials");
+  if (!$('#username').val() || !$('#password').val()){
+    document.getElementById('errorModalTitle').innerHTML = 'Something went wrong <p></p>';
+    document.getElementById('errorModalClose').style.display = 'initial';
+
+    document.getElementById('errorLabel').innerHTML = 'Please insert username and password';
+    $('#errorModal').modal('show');
+  }
   else{
     var username = $('#username').val();
     var password = $('#password').val();
@@ -1043,6 +1051,8 @@ function actuators(e, description, actuator_id, actuator_name, actuator_platform
     }
 
     if(description == 'dimmer'){
+      actuator_current_value = '50';
+
       document.getElementById('actuator_explanation').innerHTML = 'This actuator contains a light whose intesity can by controlled. <p></p>Use the bar to control the light intensity of this actuator and the press "Actuate" to send the action.';
       document.getElementById('light_dimmer').style.display = 'initial';
 
@@ -1056,6 +1066,8 @@ function actuators(e, description, actuator_id, actuator_name, actuator_platform
     }
 
     if(description == 'curtain'){
+      actuator_current_value = '50';
+
       document.getElementById('actuator_explanation').innerHTML = 'This actuator contains a curtain whose position can be controlled. <p></p>Use the bar to control the curtain position of this actuator and the press "Actuate" to send the action.';
       document.getElementById('curtain_slider').style.display = 'initial';
 
@@ -1068,6 +1080,8 @@ function actuators(e, description, actuator_id, actuator_name, actuator_platform
     }
     
     if (description == 'rgb light'){
+      actuator_current_value = '128:128:128:0.5';
+
       document.getElementById('actuator_explanation').innerHTML = 'This actuator contains a RGB light whose color can be changed. <p></p>Use the bar to change the light color of this actuator and the press "Actuate" to send the action.';
       document.getElementById('light_rgb').style.display = 'initial';
 
@@ -1096,12 +1110,17 @@ function actuators(e, description, actuator_id, actuator_name, actuator_platform
 function sendActuation(actuator_id, type, event){
 
   if (type == 'rgb light'){
+    r_value = actuator_current_value.split(':')[0];
+    g_value = actuator_current_value.split(':')[1];
+    b_value = actuator_current_value.split(':')[2];
+    a_value = actuator_current_value.split(':')[3];
+
     act_data ={
             "inputParameters": [
-                {"name": "luminousEfficacy", "value": actuator_current_value.split(':')[0].toString()},
-                {"name": "luminousExposure", "value": actuator_current_value.split(':')[1].toString()},
-                {"name": "luminousFlux", "value": actuator_current_value.split(':')[2].toString()},
-                {"name": "luminousIntensity", "value": actuator_current_value.split(':')[3].toString()}
+                {"name": "luminousEfficacy", "value": Math.floor((r_value*100)/255).toString()},
+                {"name": "luminousExposure", "value": Math.floor((g_value*100)/255).toString()},
+                {"name": "luminousFlux", "value": Math.floor((b_value*100)/255).toString()},
+                {"name": "luminousIntensity", "value": Math.floor(a_value*100).toString()}
               ]
             }
     
@@ -1110,7 +1129,6 @@ function sendActuation(actuator_id, type, event){
   }
 
   var auth_token = (event.target.getAttribute('platform_request'));
-
   $.ajax({
     url: "https://symbiote.nextworks.it:8102/rap/ActuatingServices('" + actuator_id +  "')",
     beforeSend: function(xhr){xhr.setRequestHeader('X-Auth-Token', auth_token);},
