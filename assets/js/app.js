@@ -674,7 +674,7 @@ $(document).on("ready", function () {
     
     sendActuation(actuator_id, type_desc, event);
 
-    if(type_desc == 'rgb light'){
+    if(type_desc == 'rgb light' || type_desc == 'RGBw Wall'){
       actuator_current_value = '128:128:128:0.5';
 
       $("#R").slider('destroy');
@@ -698,7 +698,7 @@ $(document).on("ready", function () {
   closeSendActuation.addEventListener('click', function(event) {
     type_desc = event.target.getAttribute('actuator_desc');
 
-    if(type_desc == 'rgb light'){
+    if(type_desc == 'rgb light' || type_desc == 'RGBw Wall'){
       actuator_current_value = '128:128:128:0.5';
 
       $("#R").slider('destroy');
@@ -1079,7 +1079,7 @@ function actuators(e, description, actuator_id, actuator_name, actuator_platform
       });
     }
     
-    if (description == 'rgb light'){
+    if (description == 'rgb light' || description == 'RGBw Wall'){
       actuator_current_value = '128:128:128:0.5';
 
       document.getElementById('actuator_explanation').innerHTML = 'This actuator contains a RGB light whose color can be changed. <p></p>Use the bar to change the light color of this actuator and the press "Actuate" to send the action.';
@@ -1109,7 +1109,7 @@ function actuators(e, description, actuator_id, actuator_name, actuator_platform
 
 function sendActuation(actuator_id, type, event){
 
-  if (type == 'rgb light'){
+  if (type == 'rgb light' || type == 'RGBw Wall'){
     r_value = actuator_current_value.split(':')[0];
     g_value = actuator_current_value.split(':')[1];
     b_value = actuator_current_value.split(':')[2];
