@@ -1114,7 +1114,7 @@ function sendActuation(actuator_id, type, event){
 
   $.ajax({
     url: "https://symbiote.nextworks.it:8102/rap/ActuatingServices('" + actuator_id +  "')",
-    // beforeSend: function(xhr){xhr.setRequestHeader('X-Auth-Token', auth_token);},
+    beforeSend: function(xhr){xhr.setRequestHeader('X-Auth-Token', auth_token);},
     data: JSON.stringify(act_data),
     type: "PUT",
     contentType: "json",
