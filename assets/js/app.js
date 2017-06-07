@@ -870,7 +870,7 @@ function websocketsON(websocket, platform_id, platform_url){
   }
 
   websocket.onerror=function(event){
-    console.log("ERROR");
+    console.log("ERROR websocket");
     // document.getElementById('errorModalTitle').innerHTML = 'Something went wrong, please refresh the page: <p></p>'
     // document.getElementById('errorModalClose').style.display = 'none';
 
@@ -1110,7 +1110,6 @@ function sendActuation(actuator_id, type, event){
   }
 
   var auth_token = (event.target.getAttribute('platform_request'));
-  console.log(act_data);
 
   $.ajax({
     url: "https://symbiote.nextworks.it:8102/rap/ActuatingServices('" + actuator_id +  "')",
@@ -1121,7 +1120,6 @@ function sendActuation(actuator_id, type, event){
     dataType: "json",
     cache: false,
     success: function(res, status, xhr) { 
-      console.log(res, status);
     },
     error:function(error){
       // TODO add error message
@@ -1205,6 +1203,7 @@ function sensors(e, authorization_token){
                           contentType: "application/json",
                           cache: false,
                           success: function(data){
+              
                             if (subscribedResources.indexOf(click_resource_id) != -1)
                               document.getElementById('subscribeResource').innerHTML = "Unsubscribe";
                             else
@@ -1255,9 +1254,11 @@ function sensors(e, authorization_token){
 
                               //console.log(graphDict);
 
+                              observationTime = samplingTime.split('T')[0] + ', ' + samplingTime.split('T')[1].split('Z')[0].split('.')[0];
+
                               var table = $('#historicTable').DataTable();
                               var row = table
-                              .row.add( [measurementValue, observedProperty, unit, latitude, longitude, type] )
+                              .row.add( [measurementValue, observedProperty, unit, latitude, longitude, observationTime] )
                               .draw()
                               .node();
 
