@@ -1116,10 +1116,11 @@ function sendActuation(actuator_id, type, event){
     beforeSend: function(xhr){xhr.setRequestHeader('X-Auth-Token', auth_token);},
     data: JSON.stringify(act_data),
     type: "PUT",
-    contentType: "json",
-    dataType: "json",
+    contentType: "application/json",
+    dataType: "application/json",
     cache: false,
     success: function(res, status, xhr) { 
+
     },
     error:function(error){
       // TODO add error message
