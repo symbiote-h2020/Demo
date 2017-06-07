@@ -679,7 +679,7 @@ $(document).on("ready", function () {
 
       $("#ex1").slider('destroy');
     }
-    if(type_desc == 'Tenda'){
+    if(type_desc == 'curtain'){
       actuator_current_value = '128';
 
       $("#ex2").slider('destroy');
@@ -703,7 +703,7 @@ $(document).on("ready", function () {
 
       $("#ex1").slider('destroy');
     }
-    if(type_desc == 'Tenda'){
+    if(type_desc == 'curtain'){
       actuator_current_value = '128';
 
       $("#ex2").slider('destroy');
@@ -1055,7 +1055,7 @@ function actuators(e, description, actuator_id, actuator_name, actuator_platform
       });
     }
 
-    if(description == 'Tenda'){
+    if(description == 'curtain'){
       document.getElementById('actuator_explanation').innerHTML = 'This actuator contains a curtain whose position can be controlled. <p></p>Use the bar to control the curtain position of this actuator and the press "Actuate" to send the action.';
       document.getElementById('curtain_slider').style.display = 'initial';
 
