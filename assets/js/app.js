@@ -16,6 +16,8 @@ var websockets_connection_error = 0;
 
 var actuator_current_value = 0;
 
+var symbioteUrl = "https://symbiote.man.poznan.pl"
+
 subscribedResources = Array();
 
 var search = Array();
@@ -285,7 +287,7 @@ function getSensors(){
 
 
   });
-  var url = 'https://symbiote-dev.man.poznan.pl:8100/coreInterface/v1/query';
+  var url = symbioteUrl + ':8100/coreInterface/v1/query';
   if ($('#platform_name').val())
     search.push("platform_name="+$('#platform_name').val())
 
@@ -463,7 +465,7 @@ userLogin.addEventListener('click', function(){
     var password = $('#password').val();
 
     $.ajax({
-        url: "https://symbiote-dev.man.poznan.pl:8100/coreInterface/v1/login",
+        url: symbioteUrl + ":8100/coreInterface/v1/login",
         data: JSON.stringify({ "username": username, "password": password }),
         type: "POST",
         contentType: "application/json",
@@ -648,7 +650,7 @@ subscribeResource.addEventListener('click', function(event) {
 
 // ----- DOCUMENT READY -----
 $(document).on("ready", function () {
-  startWebsockets();
+  //startWebsockets();
 
   $("#loading").hide();
 
@@ -776,7 +778,7 @@ function startWebsockets(){
   }
 
   // $.ajax({
-  //     url: 'https://symbiote-dev.man.poznan.pl:8100/coreInterface/v1/get_available_aams',
+  //     url: symbioteUrl + ':8100/coreInterface/v1/get_available_aams',
   //     type: "GET",
   //     contentType: "application/json",
   //     cache: false,
@@ -942,7 +944,7 @@ function websocketsON(websocket, platform_id, platform_url){
 }
 function actuators(e, description, actuator_id, actuator_name, actuator_platform_id){
 
-  var row_url = "https://symbiote-dev.man.poznan.pl:8100/coreInterface/v1/resourceUrls?id=" + actuator_id;
+  var row_url = symbioteUrl + ":8100/coreInterface/v1/resourceUrls?id=" + actuator_id;
 
   $("#loading").show();
 
@@ -971,7 +973,7 @@ function actuators(e, description, actuator_id, actuator_name, actuator_platform
 
             // Get all platforms tokens
             $.ajax({
-                url: 'https://symbiote-dev.man.poznan.pl:8100/coreInterface/v1/get_available_aams',
+                url: symbioteUrl + ':8100/coreInterface/v1/get_available_aams',
                 type: "GET",
                 contentType: "application/json",
                 cache: false,
@@ -1155,7 +1157,7 @@ function sensors(e, authorization_token){
     var table = $('#historicTable').DataTable();
     var rows = table.rows().remove().draw();
 
-    var row_url = "https://symbiote-dev.man.poznan.pl:8100/coreInterface/v1/resourceUrls?id=" + e.target.parentNode.id
+    var row_url = symbioteUrl + ":8100/coreInterface/v1/resourceUrls?id=" + e.target.parentNode.id
 
     var platform_id = e.target.parentNode.getAttribute('platform_id');
 
@@ -1186,7 +1188,7 @@ function sensors(e, authorization_token){
 
               // Get all platforms tokens
               $.ajax({
-                  url: 'https://symbiote-dev.man.poznan.pl:8100/coreInterface/v1/get_available_aams',
+                  url: symbioteUrl + ':8100/coreInterface/v1/get_available_aams',
                   type: "GET",
                   contentType: "application/json",
                   cache: false,
