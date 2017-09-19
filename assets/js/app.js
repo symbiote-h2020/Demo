@@ -16,7 +16,7 @@ var websockets_connection_error = 0;
 
 var actuator_current_value = 0;
 
-var symbioteUrl = "https://symbiote.man.poznan.pl"
+var symbioteUrl = "https://symbiote-dev.man.poznan.pl"
 
 subscribedResources = Array();
 
@@ -150,11 +150,11 @@ function expandMap (){
 
 //  Handle the click in a row that opens a modal with ths historic of the sensor of the clicked line
 function handleClickRow(e){
-  if (!sessionStorage.getItem("authorization")){
-    document.getElementById('errorLabel').innerHTML = 'Please make sure you are signed in to access resources historical data.'
-    $('#errorModal').modal('show');
-  }
-  else{
+  // if (!sessionStorage.getItem("authorization")){
+  //   document.getElementById('errorLabel').innerHTML = 'Please make sure you are signed in to access resources historical data.'
+  //   $('#errorModal').modal('show');
+  // }
+  //else{
     authorization_token = sessionStorage.getItem("authorization");
     description = e.target.parentNode.getAttribute('description');
     type = e.target.parentNode.getAttribute('type');
@@ -169,7 +169,7 @@ function handleClickRow(e){
     }
     if (type == 'StationarySensor')
       sensors(e, authorization_token);
-  }
+  //}
 }
 
 // Remove data (sensors) from previous search
@@ -452,59 +452,59 @@ searchTopBar.addEventListener('click', function() {
 }, false);
 
 
-userLogin.addEventListener('click', function(){
-  if (!$('#username').val() || !$('#password').val()){
-    document.getElementById('errorModalTitle').innerHTML = 'Something went wrong <p></p>';
-    document.getElementById('errorModalClose').style.display = 'initial';
+// userLogin.addEventListener('click', function(){
+//   if (!$('#username').val() || !$('#password').val()){
+//     document.getElementById('errorModalTitle').innerHTML = 'Something went wrong <p></p>';
+//     document.getElementById('errorModalClose').style.display = 'initial';
 
-    document.getElementById('errorLabel').innerHTML = 'Please insert username and password';
-    $('#errorModal').modal('show');
-  }
-  else{
-    var username = $('#username').val();
-    var password = $('#password').val();
+//     document.getElementById('errorLabel').innerHTML = 'Please insert username and password';
+//     $('#errorModal').modal('show');
+//   }
+//   else{
+//     var username = $('#username').val();
+//     var password = $('#password').val();
 
-    $.ajax({
-        url: symbioteUrl + ":8100/coreInterface/v1/login",
-        data: JSON.stringify({ "username": username, "password": password }),
-        type: "POST",
-        contentType: "application/json",
-        cache: false,
-        success: function(res, status, xhr) { 
-          var token = xhr.getResponseHeader("X-Auth-Token");
-          //console.log(token)
+//     $.ajax({
+//         url: symbioteUrl + ":8100/coreInterface/v1/login",
+//         data: JSON.stringify({ "username": username, "password": password }),
+//         type: "POST",
+//         contentType: "application/json",
+//         cache: false,
+//         success: function(res, status, xhr) { 
+//           var token = xhr.getResponseHeader("X-Auth-Token");
+//           //console.log(token)
 
-          sessionStorage.setItem("authorization", token);
+//           sessionStorage.setItem("authorization", token);
 
-          document.getElementById('session').style.display = 'inline';
+//           document.getElementById('session').style.display = 'inline';
 
-          document.getElementById("login").style.display = 'block'
-          document.getElementById("loginStatus").innerHTML = "Welcome " + username + "!";
-          document.getElementById("loginStatus").style.color = "green";
+//           document.getElementById("login").style.display = 'block'
+//           document.getElementById("loginStatus").innerHTML = "Welcome " + username + "!";
+//           document.getElementById("loginStatus").style.color = "green";
 
-          document.getElementById('timer').innerHTML = 60 + ":" + 00;
-          startTimer();
-        },
-        error:function(error){
-          // TODO add error message
-          if(error.status == 401){
-            document.getElementById("login").style.display = 'block'
-            document.getElementById('session').style.display = 'none';
-            document.getElementById("loginStatus").innerHTML = "Invalid Credentials";
-            document.getElementById("loginStatus").style.color = "firebrick";
-          }
-          else{
-            document.getElementById("login").style.display = 'block'
-            document.getElementById('session').style.display = 'none';
-            document.getElementById("loginStatus").innerHTML = "It was not possible to sign in. Please try again later.";
-            document.getElementById("loginStatus").style.color = "firebrick";
-          }
-        }
-    });
-  }
+//           document.getElementById('timer').innerHTML = 60 + ":" + 00;
+//           startTimer();
+//         },
+//         error:function(error){
+//           // TODO add error message
+//           if(error.status == 401){
+//             document.getElementById("login").style.display = 'block'
+//             document.getElementById('session').style.display = 'none';
+//             document.getElementById("loginStatus").innerHTML = "Invalid Credentials";
+//             document.getElementById("loginStatus").style.color = "firebrick";
+//           }
+//           else{
+//             document.getElementById("login").style.display = 'block'
+//             document.getElementById('session').style.display = 'none';
+//             document.getElementById("loginStatus").innerHTML = "It was not possible to sign in. Please try again later.";
+//             document.getElementById("loginStatus").style.color = "firebrick";
+//           }
+//         }
+//     });
+//   }
 
 
-});
+// });
 
 
 // Submit model search
@@ -1157,22 +1157,33 @@ function sensors(e, authorization_token){
     var table = $('#historicTable').DataTable();
     var rows = table.rows().remove().draw();
 
-    var row_url = symbioteUrl + ":8100/coreInterface/v1/resourceUrls?id=" + e.target.parentNode.id
+    //var row_url = symbioteUrl + ":8100/coreInterface/v1/resourceUrls?id=" + e.target.parentNode.id
+
+    var row_url = "http://localhost:8777/get_resource_url/";
 
     var platform_id = e.target.parentNode.getAttribute('platform_id');
+
+    var form = new FormData();
+    form.append("resourceId", e.target.parentNode.id);  
 
     $("#loading").show();
 
     // Get resource url
     $.ajax({
           url: row_url,
-          type: "GET",
-          beforeSend: function(xhr){xhr.setRequestHeader('X-Auth-Token', authorization_token);},
+          type: "POST",
+          // beforeSend: function(xhr){
+          //   xhr.setRequestHeader('X-Auth-Token', authorization_token);
+          // },
           contentType: "application/json",
           cache: false,
+          data: form,
+          processData: false,
+          contentType: false,
           success: function(data){
+            var device_url = data.body[e.target.parentNode.id];
+
             var name = e.target.parentNode.getAttribute('identification');
-            object_url = data[e.target.parentNode.id]
 
             if(data.error){
               document.getElementById('errorModalTitle').innerHTML = 'Something went wrong <p></p>'
@@ -1186,153 +1197,110 @@ function sensors(e, authorization_token){
               click_resource_name = e.target.parentNode.getAttribute('identification');
               click_resource_platform = e.target.parentNode.getAttribute('platform_id');
 
-              // Get all platforms tokens
-              $.ajax({
-                  url: symbioteUrl + ':8100/coreInterface/v1/get_available_aams',
-                  type: "GET",
-                  contentType: "application/json",
-                  cache: false,
-                  success: function(data){
-                    //TEMP CODE
-                    var address = 'https://' + object_url.split('//')[1].split('/')[0];    
-                    //TEMP CODE
+              var form = new FormData();
+              form.append("resourceUrl", device_url);  
 
-                    for (var i = 0; i < data.length; i++){
-                      if (data[i].aamInstanceId == platform_id)
-                        // get_token_url = data[i].aamAddress + '/request_foreign_token';
-                        get_token_url = address + '/paam/request_foreign_token'; //TEMP CODE
+              // Get the historical data for the clicked resource (using url returned by the firs request and the specific token for the pretended platform that the resource belogns)
+              $.ajax({
+                url: "http://localhost:8777/observations/",
+                type: "POST",
+                data: form,
+                processData: false,
+                contentType: false,
+                contentType: "application/json",
+                cache: false,
+                success: function(data){
+    
+                  if (subscribedResources.indexOf(click_resource_id) != -1)
+                    document.getElementById('subscribeResource').innerHTML = "Unsubscribe";
+                  else
+                    document.getElementById('subscribeResource').innerHTML = "Subscribe";
+
+                  document.getElementById('subscribeResource').setAttribute('resource_id', click_resource_id);
+                  document.getElementById('subscribeResource').setAttribute('resource_name', click_resource_name);
+                  document.getElementById('subscribeResource').setAttribute('resource_platform', click_resource_platform);
+                  
+
+                  for (var key in webSockets){
+                    if (key == click_resource_platform){
+                      document.getElementById('subscribeResource').style.display = 'inline';
+                      break;
+                    }
+                  }
+
+
+                  historical_data = JSON.parse(data)
+                  
+                  graphDict = {}
+                  $("#selectBox").empty();
+
+                  for (var i = 0; i < historical_data.length; i ++){
+                    if (historical_data[i]['location'])
+                      var latitude = historical_data[i]['location']['latitude']
+                    else
+                      var latitude = "NA"
+                    
+                    if (historical_data[i]['location'])
+                      var longitude = historical_data[i]['location']['longitude']
+                    else
+                      var longitude = "NA"
+                    
+                    if (historical_data[i]['obsValues'][0]['obsProperty']['label'])
+                      var observedProperty = historical_data[i]['obsValues'][0]['obsProperty']['label']
+                    else
+                      var observedProperty = "NA"
+                    
+                    if (historical_data[i]['obsValues'][0]['uom']['symbol'])
+                      var unit = historical_data[i]['obsValues'][0]['uom']['symbol']
+                    else
+                      var unit = "NA"
+
+                    if (historical_data[i]['obsValues'][0]['value'])
+                      var measurementValue = historical_data[i]['obsValues'][0]['value']
+                    else
+                      var measurementValue = "NA"
+                    
+                    if (historical_data[i]['samplingTime'])
+                      var samplingTime = historical_data[i]['samplingTime']
+                    else 
+                      var samplingTime = "NA"
+
+                    if (observedProperty in graphDict){
+                        graphDict[observedProperty].push([measurementValue, samplingTime]);
                     }
 
-                    //Get the token using the returned url by the previous request
-                    $.ajax({
-                      url: get_token_url,
-                      type: "POST",
-                      beforeSend: function(xhr){xhr.setRequestHeader('X-Auth-Token', authorization_token);},
-                      contentType: "application/json",
-                      cache: false,
-                      success: function(data, status, xhr){
-                        var resource_token = xhr.getResponseHeader("X-Auth-Token");
+                    else{
+                      graphDict[observedProperty] = []
+                      graphDict[observedProperty].push([measurementValue, samplingTime]);
+                      $("#selectBox").append('<option value="' + observedProperty + '">' + observedProperty + '</option>');}
 
-                        // split_object_url = object_url.split('(');
-                        // object_url = split_object_url[0] + 's(' + split_object_url[1];
+                    //console.log(graphDict);
 
-                        // Get the historical data for the clicked resource (using url returned by the firs request and the specific token for the pretended platform that the resource belogns)
-                        $.ajax({
-                          url: object_url + "/Observations",
-                          type: "GET",
-                          beforeSend: function(xhr){xhr.setRequestHeader('X-Auth-Token', resource_token);},
-                          contentType: "application/json",
-                          cache: false,
-                          success: function(data){
-              
-                            if (subscribedResources.indexOf(click_resource_id) != -1)
-                              document.getElementById('subscribeResource').innerHTML = "Unsubscribe";
-                            else
-                              document.getElementById('subscribeResource').innerHTML = "Subscribe";
+                    observationTime = samplingTime.split('T')[0] + ', ' + samplingTime.split('T')[1].split('Z')[0].split('.')[0];
 
-                            document.getElementById('subscribeResource').setAttribute('resource_id', click_resource_id);
-                            document.getElementById('subscribeResource').setAttribute('resource_name', click_resource_name);
-                            document.getElementById('subscribeResource').setAttribute('resource_platform', click_resource_platform);
-                            
+                    var table = $('#historicTable').DataTable();
+                    var row = table
+                    .row.add( [measurementValue, observedProperty, unit, latitude, longitude, observationTime] )
+                    .draw()
+                    .node();
 
-                            for (var key in webSockets){
-                              if (key == click_resource_platform){
-                                document.getElementById('subscribeResource').style.display = 'inline';
-                                break;
-                              }
-                            }
-
-
-                            historical_data = JSON.parse(data)
-                            
-                            graphDict = {}
-                            $("#selectBox").empty();
-
-                            for (var i = 0; i < historical_data.length; i ++){
-                              if (historical_data[i]['location'])
-                                var latitude = historical_data[i]['location']['latitude']
-                              else
-                                var latitude = "NA"
-                              
-                              if (historical_data[i]['location'])
-                                var longitude = historical_data[i]['location']['longitude']
-                              else
-                                var longitude = "NA"
-                              
-                              if (historical_data[i]['obsValues'][0]['obsProperty']['label'])
-                                var observedProperty = historical_data[i]['obsValues'][0]['obsProperty']['label']
-                              else
-                                var observedProperty = "NA"
-                              
-                              if (historical_data[i]['obsValues'][0]['uom']['symbol'])
-                                var unit = historical_data[i]['obsValues'][0]['uom']['symbol']
-                              else
-                                var unit = "NA"
-
-                              if (historical_data[i]['obsValues'][0]['value'])
-                                var measurementValue = historical_data[i]['obsValues'][0]['value']
-                              else
-                                var measurementValue = "NA"
-                              
-                              if (historical_data[i]['samplingTime'])
-                                var samplingTime = historical_data[i]['samplingTime']
-                              else 
-                                var samplingTime = "NA"
-
-                              if (observedProperty in graphDict){
-                                  graphDict[observedProperty].push([measurementValue, samplingTime]);
-                              }
-
-                              else{
-                                graphDict[observedProperty] = []
-                                graphDict[observedProperty].push([measurementValue, samplingTime]);
-                                $("#selectBox").append('<option value="' + observedProperty + '">' + observedProperty + '</option>');}
-
-                              //console.log(graphDict);
-
-                              observationTime = samplingTime.split('T')[0] + ', ' + samplingTime.split('T')[1].split('Z')[0].split('.')[0];
-
-                              var table = $('#historicTable').DataTable();
-                              var row = table
-                              .row.add( [measurementValue, observedProperty, unit, latitude, longitude, observationTime] )
-                              .draw()
-                              .node();
-
-                            }
-
-                            $('#infoSensorModal').modal('show');
-                            $('#infoSensorModalTitle').text(name  + " data")
-                            $("#loading").hide();
-
-                          },
-                          error:function(){
-                            $("#loading").hide();
-                            // Error code goes here.
-                            document.getElementById('errorModalTitle').innerHTML = 'Something went wrong <p></p>'
-                            document.getElementById('errorModalClose').style.display = 'initial';
-
-                            document.getElementById('errorLabel').innerHTML = 'It was not possible to get resource historical data. Please try again.'
-                            $('#errorModal').modal('show');
-                          }
-                      });
-
-                      },
-                      error:function(error){
-                        $("#loading").hide();
-                        // Error code goes here.
-                        document.getElementById('errorModalTitle').innerHTML = 'Something went wrong <p></p>'
-                        document.getElementById('errorModalClose').style.display = 'initial';
-                        document.getElementById('errorLabel').innerHTML = 'It was not possible to get resource historical data. Please try again.'
-                        $('#errorModal').modal('show');
-                      }
-                    });
-
-                  },
-                  error:function(error){
-                    $("#loading").hide();
-                    // Error code goes here.
                   }
-              });
+
+                  $('#infoSensorModal').modal('show');
+                  $('#infoSensorModalTitle').text(name  + " data")
+                  $("#loading").hide();
+
+                },
+                error:function(){
+                  $("#loading").hide();
+                  // Error code goes here.
+                  document.getElementById('errorModalTitle').innerHTML = 'Something went wrong <p></p>'
+                  document.getElementById('errorModalClose').style.display = 'initial';
+
+                  document.getElementById('errorLabel').innerHTML = 'It was not possible to get resource historical data. Please try again.'
+                  $('#errorModal').modal('show');
+                }
+            });
               
             }
           },
