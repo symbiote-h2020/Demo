@@ -1217,9 +1217,9 @@ function sendActuation(actuator_id, type, event){
       "bri": [actuator_dimmer_current_value]
     }]
 
-    act_data = '[{"name": "Philips HUE state", "value:" "{\\"rgb\\":' + [parseInt(r_value), parseInt(g_value), parseInt(b_value)] 
-    + '\\"on\\":' + [actuator_light_current_value] 
-    + '\\"bri\\":' + [actuator_dimmer_current_value] +'}"}]'
+    act_data = '[{"name": "Philips HUE state", "value": "{\\"rgb\\":[' + [parseInt(r_value), parseInt(g_value), parseInt(b_value)] 
+    + '],\\"on\\":[' + [actuator_light_current_value] 
+    + '],\\"bri\\":[' + [actuator_dimmer_current_value] + ']}"}]'
     console.log(act_data);
   }
   
@@ -1230,7 +1230,7 @@ function sendActuation(actuator_id, type, event){
     url: actuator_url,
     beforeSend: function(xhr){xhr.setRequestHeader('X-Auth-Token', auth_token);},
     // data:JSON.stringify(act_data),
-    data: str(act_data),
+    data: act_data,
     type: "PUT",
     contentType: "application/json",
     dataType: "application/json",
