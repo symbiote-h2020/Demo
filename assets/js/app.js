@@ -16,7 +16,7 @@ var websockets_connection_error = 0;
 
 var actuator_current_value = 0;
 
-var symbioteUrl = "https://symbiote.man.poznan.pl"
+var symbioteUrl = "https://symbiote-ext.man.poznan.pl"
 
 subscribedResources = Array();
 
