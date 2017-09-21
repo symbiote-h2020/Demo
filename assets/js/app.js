@@ -1329,7 +1329,8 @@ function actuators(e, description, actuator_id, actuator_name, actuator_platform
                               $('#B').slider('setValue', state.rgb[2]);
                               
                               $('#RGB').css('background', 'rgba('+state.rgb[0]+','+state.rgb[1]+','+state.rgb[2]+','+state.brightness+ ')')
-                      
+                              
+                              actuator_rgb_current_value = state.rgb[0] + ':' + state.rgb[1] + ':' + state.rgb[2];
                             },
                             error:function(error){
                               console.log("ERROR");
@@ -1398,6 +1399,7 @@ function sendActuation(actuator_id, type, event){
    act_data = {"inputParameters": [{"name": "quantityOfLight", "value": actuator_dimmer_current_value.toString()}]};
   }
   else if (type == 'rgb light, brightness, state') {
+
     r_value = actuator_rgb_current_value.split(':')[0];
     g_value = actuator_rgb_current_value.split(':')[1];
     b_value = actuator_rgb_current_value.split(':')[2];
