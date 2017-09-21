@@ -336,28 +336,28 @@
           <br>
 
           <div id="light_switch" class="col-md-12 col-sm-12">
-            <label id="actuator_individual_explanation">Light Switch: </label><p></p>
+            <label style="display: none" id="actuator_individual_explanation_1">Light Switch: </label><p></p>
             <div class="col-md-12 col-sm-12">
               <input type="checkbox" name="my-checkbox" checked>
             </div>
           </div>
 
           <div id="light_dimmer" class="col-md-12 col-sm-12">
-              <label id="actuator_individual_explanation">Light Dimmer: </label><p></p>
+              <label style="display: none" id="actuator_individual_explanation_2">Light Dimmer: </label><p></p>
             <div class="col-md-12 col-sm-12">
               <input id="ex1" data-slider-id="ex1Slider" type="text" data-slider-min="0" data-slider-max="100" data-slider-step="1" data-slider-value="50"/>
             </div>
           </div>
 
           <div id="curtain_slider"class="col-md-12 col-sm-12">
-            <label id="actuator_individual_explanation">Curtain Slider</label><p></p>
+            <label style="display: none" id="actuator_individual_explanation_3">Curtain Slider</label><p></p>
             <div class="col-md-12 col-sm-12">
               <input id="ex2" data-slider-id='ex2Slider' type="text" data-slider-min="0" data-slider-max="100" data-slider-step="1" data-slider-value="50"/>
             </div>
           </div>
 
           <div id="light_rgb" class="col-md-12 col-sm-12">
-            <label id="actuator_individual_explanation">RGB Light: </label><p></p>
+            <label style="display: none" id="actuator_individual_explanation_4">RGB Light: </label><p></p>
             <div class="col-sm-4 col-md-4">
               <p>
               <b>R</b> <input type="text" class="span2" value="" data-slider-min="0" data-slider-max="255" data-slider-step="1" data-slider-value="128" data-slider-id="RC" id="R" data-slider-tooltip="hide" data-slider-handle="round" />
@@ -369,7 +369,7 @@
               <b>B</b> <input type="text" class="span2" value="" data-slider-min="0" data-slider-max="255" data-slider-step="1" data-slider-value="128" data-slider-id="BC" id="B" data-slider-tooltip="hide" data-slider-handle="round" />
               </p>
               <p>
-              <b>A</b> <input type="text" class="span2" value="" data-slider-min="0" data-slider-max="1" data-slider-step="0.1" data-slider-value="0.5" data-slider-id="AC" id="A" data-slider-tooltip="hide" data-slider-handle="round" />
+              <b id="alpha">A</b> <input type="text" class="span2" value="" data-slider-min="0" data-slider-max="1" data-slider-step="0.1" data-slider-value="0.5" data-slider-id="AC" id="A" data-slider-tooltip="hide" data-slider-handle="round" />
               </p>
             </div>
 

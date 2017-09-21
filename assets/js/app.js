@@ -29,7 +29,7 @@ var temp_payload = [ {
   "resultTime" : "2017-09-20T15:09:16",
   "samplingTime" : "2017-09-20T15:09:15",
   "obsValues" : [ {
-    "value" : "254",
+    "value" : "125",
     "obsProperty" : {
       "label" : "brightness",
       "comment" : "Philips Hue Light"
@@ -48,7 +48,7 @@ var temp_payload = [ {
   "resultTime" : "2017-09-20T15:09:16",
   "samplingTime" : "2017-09-20T15:09:15",
   "obsValues" : [ {
-    "value" : "false",
+    "value" : "true",
     "obsProperty" : {
       "label" : "state",
       "comment" : "Philips Hue Light"
@@ -712,7 +712,7 @@ subscribeResource.addEventListener('click', function(event) {
 
 // ----- DOCUMENT READY -----
 $(document).on("ready", function () {
-  startWebsockets();
+  // startWebsockets();
 
   $("#loading").hide();
 
@@ -1096,6 +1096,11 @@ function actuators(e, description, actuator_id, actuator_name, actuator_platform
 
 
                       if(description == 1){
+                        document.getElementById('actuator_individual_explanation_1').style.display = 'none';
+                        document.getElementById('actuator_individual_explanation_2').style.display = 'none';
+                        document.getElementById('actuator_individual_explanation_3').style.display = 'none';
+                        document.getElementById('actuator_individual_explanation_4').style.display = 'none';
+                        
                         document.getElementById('actuator_explanation').innerHTML = 'This actuator contains a light that can be turned on/off. <p></p>Use the switch to turn on/off the light of this actuator and the press "Actuate" to send the action.';
                         document.getElementById('light_switch').style.display = 'block';
 
@@ -1109,6 +1114,11 @@ function actuators(e, description, actuator_id, actuator_name, actuator_platform
                       }
 
                       if(description == 'dimmer'){
+                        document.getElementById('actuator_individual_explanation_1').style.display = 'none';
+                        document.getElementById('actuator_individual_explanation_2').style.display = 'none';
+                        document.getElementById('actuator_individual_explanation_3').style.display = 'none';
+                        document.getElementById('actuator_individual_explanation_4').style.display = 'none';
+
                         actuator_dimmer_current_value = '50';
 
                         document.getElementById('actuator_explanation').innerHTML = 'This actuator contains a light whose intesity can by controlled. <p></p>Use the bar to control the light intensity of this actuator and the press "Actuate" to send the action.';
@@ -1124,6 +1134,11 @@ function actuators(e, description, actuator_id, actuator_name, actuator_platform
                       }
 
                       if(description == 'curtain'){
+                        document.getElementById('actuator_individual_explanation_1').style.display = 'none';
+                        document.getElementById('actuator_individual_explanation_2').style.display = 'none';
+                        document.getElementById('actuator_individual_explanation_3').style.display = 'none';
+                        document.getElementById('actuator_individual_explanation_4').style.display = 'none';
+
                         actuator_curtain_current_value = '50';
 
                         document.getElementById('actuator_explanation').innerHTML = 'This actuator contains a curtain whose position can be controlled. <p></p>Use the bar to control the curtain position of this actuator and the press "Actuate" to send the action.';
@@ -1138,6 +1153,14 @@ function actuators(e, description, actuator_id, actuator_name, actuator_platform
                       }
                       
                       if (description == 'rgb light' || description == 'RGBw Wall'){
+                        document.getElementById('actuator_individual_explanation_1').style.display = 'none';
+                        document.getElementById('actuator_individual_explanation_2').style.display = 'none';
+                        document.getElementById('actuator_individual_explanation_3').style.display = 'none';
+                        document.getElementById('actuator_individual_explanation_4').style.display = 'none';
+
+                        document.getElementById('A').style.display = 'initial';
+                        document.getElementById('alpha').style.display = 'initial';
+
                         actuator_rgb_current_value = '128:128:128:0.5';
 
                         document.getElementById('actuator_explanation').innerHTML = 'This actuator contains a RGB light whose color can be changed. <p></p>Use the bar to change the light color of this actuator and the press "Actuate" to send the action.';
@@ -1165,57 +1188,162 @@ function actuators(e, description, actuator_id, actuator_name, actuator_platform
                       }
 
                       if (description == 'rgb light, brightness, state'){
-                        var state = getActuatorState(actuator_id, resource_token);
+                        document.getElementById('actuator_individual_explanation_1').style.display = 'block';
+                        document.getElementById('actuator_individual_explanation_2').style.display = 'block';
+                        document.getElementById('actuator_individual_explanation_3').style.display = 'block';
+                        document.getElementById('actuator_individual_explanation_4').style.display = 'block';
 
-                        document.getElementById('actuator_explanation').innerHTML = 'This actuator contains a light whose intesity can by controlled, a RGB light whose color can be changed and a light that can be turned on/off. ';
+                        document.getElementById('A').style.display = 'none';
+                        document.getElementById('alpha').style.display = 'none';
 
-                        document.getElementById('light_switch').style.display = 'block';
-                        actuator_light_current_value = true;
-                        // switch button
-                        $("[name='my-checkbox']").bootstrapSwitch();
-                        $('input[name="my-checkbox"]').bootstrapSwitch('state', state.on);
-
-                        $('input[name="my-checkbox"]').on('switchChange.bootstrapSwitch', function(event, state) {
-                          // console.log(state); // true | false
-                          actuator_light_current_value = state.on;
-                        });
-
-                        actuator_dimmer_current_value = state.brightness;
-                        document.getElementById('light_dimmer').style.display = 'block';
-
-                        //sliders
-                        $('#ex1').slider({
-                          formatter: function(value) {
-                            actuator_dimmer_current_value = value;
-                            return 'Current value: ' + value;
-                          }
-                        });
-
-                        actuator_rgb_current_value = '128:128:128:0.5';
+                        var url = "https://nodered.tel.fer.hr/rap/Sensors('" + actuator_id + "')/Observations";
                         
-                        document.getElementById('light_rgb').style.display = 'block';
+                          $.ajax({
+                            url: url,
+                            beforeSend: function(xhr){xhr.setRequestHeader('X-Auth-Token', resource_token);},
+                            type: "GET",
+                            contentType: "application/json",
+                            cache: false,
+                            success: function(data) {
+                              
+                              var state = {}
+                              
+                              for (var i = 0; i < data.length; i++){
+                                var label = data[i].obsValues[0].obsProperty.label;
+                                var value = data[i].obsValues[0].value;
+                            
+                                if (label == 'brightness'){
+                                  var rgb_brightness = parseInt(value);
+                            
+                                  var brightness = (rgb_brightness * 100) / 255;
+                            
+                                  state['brightness'] = brightness;
+                                  state['original_brightness'] = rgb_brightness;
+                                }
+                                else if (label == 'color') {
+                                  var array = JSON.parse(value);
+                            
+                                  state['rgb'] = array;
+                                }
+                                else if (label == 'state') {
+                            
+                                  if (value == 'false') {
+                                    state['on'] = false;
+                                  }else {
+                                    state['on'] = true;
+                                  }
+                                }
+                              }
+                              
+                              state.rgb.push(state.original_brightness);
+                              delete(state.original_brightness);
+                            
+                              var X = state.rgb[0] * ( state['brightness'] / state.rgb[1] );
+                              var Y = state['brightness'];
+                              var Z = ( 1 - state.rgb[0] - state.rgb[1] ) * ( state['brightness'] / state.rgb[1] );
+      
+                              var var_X = X / 100;
+                              var var_Y = Y / 100;
+                              var var_Z = Z / 100;
+                              
+                              var var_R = var_X *  3.2406 + var_Y * -1.5372 + var_Z * -0.4986;
+                              var var_G = var_X * -0.9689 + var_Y *  1.8758 + var_Z *  0.0415;
+                              var var_B = var_X *  0.0557 + var_Y * -0.2040 + var_Z *  1.0570;
+                              
+                              if ( var_R > 0.0031308 ){
+                                var_R = 1.055 * ( Math.pow(var_R, (1/2.4)) ) - 0.055;
+                              }
+                              else {
+                                var_R = 12.92 * var_R;
+                              }
+                      
+                              if ( var_G > 0.0031308 ){
+                                var_G = 1.055 * ( Math.pow(var_G, (1/2.4)) ) - 0.055;
+                              }
+                              else {
+                                var_G = 12.92 * var_G;
+                              }
+                      
+                              if ( var_B > 0.0031308 ){
+                                var_B = 1.055 * ( Math.pow(var_B, (1/2.4))  ) - 0.055;
+                              }
+                              else {
+                                var_B = 12.92 * var_B;
+                              }
+                              
+                              var sR = var_R * 255;
+                              var sG = var_G * 255;
+                              var sB = var_B * 255;
+                            
+                              state.rgb = [sR, sG, sB];
+                      
+                              document.getElementById('actuator_explanation').innerHTML = 'This actuator contains a light whose intesity can by controlled, a RGB light whose color can be changed and a light that can be turned on/off. ';
+                              
+                              document.getElementById('light_switch').style.display = 'block';
+                              actuator_light_current_value = true;
+                              // switch button
+                              $("[name='my-checkbox']").bootstrapSwitch();
+                              $('input[name="my-checkbox"]').bootstrapSwitch('state', state.on);
+                      
+                              $('input[name="my-checkbox"]').on('switchChange.bootstrapSwitch', function(event, state) {
+                                // console.log(state); // true | false
+                                actuator_light_current_value = state.on;
+                              });
+                      
+                              actuator_dimmer_current_value = state.brightness;
+                              document.getElementById('light_dimmer').style.display = 'block';
+                              
+                              //sliders
+                              $('#ex1').slider({
+                                formatter: function(value) {
+                                  actuator_dimmer_current_value = value;
+                                  return 'Current value: ' + value;
+                                }
+                              });
+                      
+                              $('#ex1').slider('setValue', state.brightness);                        
+                      
+                              document.getElementById('light_rgb').style.display = 'block';                        
+                      
+                              // rgb sliders
+                              var RGBChange = function() {
+                                $('#RGB').css('background', 'rgba('+r.getValue()+','+g.getValue()+','+b.getValue()+','+a.getValue()+ ')')
+                                  actuator_rgb_current_value = r.getValue()+':'+g.getValue()+':'+b.getValue()+':'+a.getValue();
+                                  //console.log('rgb('+r.getValue()+','+g.getValue()+','+b.getValue()+','+a.getValue()+ ')');
+                              };
+                      
+                              r = $('#R').slider()
+                                  .on('slide', RGBChange)
+                                  .data('slider');
+                              g = $('#G').slider()
+                                  .on('slide', RGBChange)
+                                  .data('slider');
+                              b = $('#B').slider()
+                                  .on('slide', RGBChange)
+                                  .data('slider');
+                              
+                              $('#R').slider('setValue', state.rgb[0]);
+                              $('#G').slider('setValue', state.rgb[1]);
+                              $('#B').slider('setValue', state.rgb[2]);
+                              
+                              $('#RGB').css('background', 'rgba('+state.rgb[0]+','+state.rgb[1]+','+state.rgb[2]+','+state.brightness+ ')')
+                      
+                            },
+                            error:function(error){
+                              console.log("ERROR");
+                              console.log(error);
+                              $('#actuatorsModal').modal('hide');
+                              $("#loading").hide();
 
-                        // rgb sliders
-                        var RGBChange = function() {
-                          $('#RGB').css('background', 'rgba('+r.getValue()+','+g.getValue()+','+b.getValue()+','+a.getValue()+ ')')
-                            actuator_rgb_current_value = r.getValue()+':'+g.getValue()+':'+b.getValue()+':'+a.getValue();
-                            //console.log('rgb('+r.getValue()+','+g.getValue()+','+b.getValue()+','+a.getValue()+ ')');
-                        };
-
-                        r = $('#R').slider()
-                            .on('slide', RGBChange)
-                            .data('slider');
-                        g = $('#G').slider()
-                            .on('slide', RGBChange)
-                            .data('slider');
-                        b = $('#B').slider()
-                            .on('slide', RGBChange)
-                            .data('slider');
-                        a = $('#A').slider()
-                            .on('slide', RGBChange)
-                            .data('slider')
+                              document.getElementById('errorModalTitle').innerHTML = 'Something went wrong <p></p>'
+                              document.getElementById('errorModalClose').style.display = 'initial';
+                              document.getElementById('errorLabel').innerHTML = 'It was not possible to access to this actuator. Please try again later.'
+                              $('#errorModal').modal('show');
+                              // TODO add error message
+                        
+                            }
+                          });
                       }
-
                     },
                     error:function(error){
                       $("#loading").hide();
@@ -1244,108 +1372,6 @@ function actuators(e, description, actuator_id, actuator_name, actuator_platform
           $('#errorModal').modal('show');
         }
     });
-}
-
-function getActuatorState(id, resource_token) {
-  var url = "https://nodered.tel.fer.hr/rap/Sensors('" + id + "')/Observations";
-
-  $.ajax({
-    url: url,
-    beforeSend: function(xhr){xhr.setRequestHeader('X-Auth-Token', resource_token);},
-    type: "GET",
-    contentType: "application/json",
-    dataType: "application/json",
-    cache: false,
-    success: function(data, status, xhr) { 
-      console.log(data);
-
-    },
-    error:function(error){
-      // TODO add error message
-
-    }
-  });
-
-  var state = {}
-
-  for (var i = 0; i < temp_payload.length; i++){
-    var label = temp_payload[i].obsValues[0].obsProperty.label;
-    var value = temp_payload[i].obsValues[0].value;
-
-    if (label == 'brightness'){
-      var rgb_brightness = parseInt(value);
-
-      var brightness = (rgb_brightness * 100) / 255;
-
-      state['brightness'] = brightness;
-      state['original_brightness'] = rgb_brightness;
-    }
-    else if (label == 'color') {
-      var array = JSON.parse(value);
-
-      state['rgb'] = array;
-    }
-    else if (label == 'state') {
-
-      if (value == 'false') {
-        state['on'] = false;
-      }else {
-        state['on'] = true;
-      }
-    }
-  }
-  
-  state.rgb.push(state.original_brightness);
-  delete(state.original_brightness);
-
-  var X = state.rgb[0] * ( state['brightness'] / state.rgb[1] );
-  var Y = state['brightness'];
-  var Z = ( 1 - state.rgb[0] - state.rgb[1] ) * ( state['brightness'] / state.rgb[1] );
-  
-  var converted_rgb = convertXYZToRgb(X,Y,Z);
-
-  state.rgb = converted_rgb;
-
-  return state;
-
-}
-
-function convertXYZToRgb(X,Y,Z) {
-
-  var var_X = X / 100;
-  var var_Y = Y / 100;
-  var var_Z = Z / 100;
-  
-  var var_R = var_X *  3.2406 + var_Y * -1.5372 + var_Z * -0.4986;
-  var var_G = var_X * -0.9689 + var_Y *  1.8758 + var_Z *  0.0415;
-  var var_B = var_X *  0.0557 + var_Y * -0.2040 + var_Z *  1.0570;
-  
-  if ( var_R > 0.0031308 ){
-    var_R = 1.055 * ( Math.pow(var_R, (1/2.4)) ) - 0.055;
-  }
-  else {
-    var_R = 12.92 * var_R;
-  }
-
-  if ( var_G > 0.0031308 ){
-    var_G = 1.055 * ( Math.pow(var_G, (1/2.4)) ) - 0.055;
-  }
-  else {
-    var_G = 12.92 * var_G;
-  }
-
-  if ( var_B > 0.0031308 ){
-    var_B = 1.055 * ( Math.pow(var_B, (1/2.4))  ) - 0.055;
-  }
-  else {
-    var_B = 12.92 * var_B;
-  }
-  
-  var sR = var_R * 255;
-  var sG = var_G * 255;
-  var sB = var_B * 255;
-
-  return [sR, sG, sB];
 }
 
 function sendActuation(actuator_id, type, event){
@@ -1384,7 +1410,6 @@ function sendActuation(actuator_id, type, event){
     act_data = '[{"name": "Philips HUE state", "value": "{\\"rgb\\":[' + [parseInt(r_value), parseInt(g_value), parseInt(b_value)] 
     + '],\\"on\\":[' + [actuator_light_current_value] 
     + '],\\"bri\\":[' + [actuator_dimmer_current_value] + ']}"}]'
-    console.log(act_data);
   }
   
 
