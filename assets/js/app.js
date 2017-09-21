@@ -1207,8 +1207,10 @@ function actuators(e, description, actuator_id, actuator_name, actuator_platform
                             success: function(data) {
                               
                               var state = {}
-                              
+                              data = JSON.parse(data);
+                      
                               for (var i = 0; i < data.length; i++){
+
                                 var label = data[i].obsValues[0].obsProperty.label;
                                 var value = data[i].obsValues[0].value;
                             
@@ -1307,8 +1309,8 @@ function actuators(e, description, actuator_id, actuator_name, actuator_platform
                       
                               // rgb sliders
                               var RGBChange = function() {
-                                $('#RGB').css('background', 'rgba('+r.getValue()+','+g.getValue()+','+b.getValue()+','+a.getValue()+ ')')
-                                  actuator_rgb_current_value = r.getValue()+':'+g.getValue()+':'+b.getValue()+':'+a.getValue();
+                                $('#RGB').css('background', 'rgb('+r.getValue()+','+g.getValue()+','+b.getValue())
+                                  actuator_rgb_current_value = r.getValue()+':'+g.getValue()+':'+b.getValue();
                                   //console.log('rgb('+r.getValue()+','+g.getValue()+','+b.getValue()+','+a.getValue()+ ')');
                               };
                       
