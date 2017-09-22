@@ -1,62 +1,3 @@
-var temp_payload = [ {
-  "resourceId" : "nodered",
-  "location" : {
-    "description" : "Zagreb",
-    "latitude" : 45.8062,
-    "longitude" : 15.971281,
-    "altitude" : 145.0,
-    "name" : "FER"
-  },
-  "resultTime" : "2017-09-20T15:09:16",
-  "samplingTime" : "2017-09-20T15:09:15",
-  "obsValues" : [ {
-    "value" : "[0.336,0.3603]",
-    "obsProperty" : {
-      "label" : "color",
-      "comment" : "Philips Hue Light"
-    },
-    "uom" : { }
-  } ]
-}, {
-  "resourceId" : "nodered",
-  "location" : {
-    "description" : "Zagreb",
-    "latitude" : 45.8062,
-    "longitude" : 15.971281,
-    "altitude" : 145.0,
-    "name" : "FER"
-  },
-  "resultTime" : "2017-09-20T15:09:16",
-  "samplingTime" : "2017-09-20T15:09:15",
-  "obsValues" : [ {
-    "value" : "125",
-    "obsProperty" : {
-      "label" : "brightness",
-      "comment" : "Philips Hue Light"
-    },
-    "uom" : { }
-  } ]
-}, {
-  "resourceId" : "nodered",
-  "location" : {
-    "description" : "Zagreb",
-    "latitude" : 45.8062,
-    "longitude" : 15.971281,
-    "altitude" : 145.0,
-    "name" : "FER"
-  },
-  "resultTime" : "2017-09-20T15:09:16",
-  "samplingTime" : "2017-09-20T15:09:15",
-  "obsValues" : [ {
-    "value" : "true",
-    "obsProperty" : {
-      "label" : "state",
-      "comment" : "Philips Hue Light"
-    },
-    "uom" : { }
-  } ]
-} ]
-
 var map, featureList;
 
 var sensorsMarkers = Array();
@@ -1205,7 +1146,6 @@ function actuators(e, description, actuator_id, actuator_name, actuator_platform
                             contentType: "application/json",
                             cache: false,
                             success: function(data) {
-                              
                               var state = {}
                               data = JSON.parse(data);
                       
@@ -1276,20 +1216,30 @@ function actuators(e, description, actuator_id, actuator_name, actuator_platform
                               var sR = var_R * 255;
                               var sG = var_G * 255;
                               var sB = var_B * 255;
+
+                              if (sR>255){
+                                sR = 255
+                              }
+                              if (sG>255){
+                                sR = 255
+                              }
+                              if (sB>255){
+                                sR = 255
+                              }
                             
                               state.rgb = [sR, sG, sB];
                       
                               document.getElementById('actuator_explanation').innerHTML = 'This actuator contains a light whose intesity can by controlled, a RGB light whose color can be changed and a light that can be turned on/off. ';
                               
                               document.getElementById('light_switch').style.display = 'block';
-                              actuator_light_current_value = true;
+
                               // switch button
                               $("[name='my-checkbox']").bootstrapSwitch();
                               $('input[name="my-checkbox"]').bootstrapSwitch('state', state.on);
                       
                               $('input[name="my-checkbox"]').on('switchChange.bootstrapSwitch', function(event, state) {
                                 // console.log(state); // true | false
-                                actuator_light_current_value = state.on;
+                                actuator_light_current_value = state;
                               });
                       
                               actuator_dimmer_current_value = state.brightness;
@@ -1357,7 +1307,6 @@ function actuators(e, description, actuator_id, actuator_name, actuator_platform
                       $('#errorModal').modal('show');
                     }
                   });
-
                 },
                 error:function(error){
                   $("#loading").hide();
@@ -1415,6 +1364,8 @@ function sendActuation(actuator_id, type, event){
     + '],\\"on\\":[' + [actuator_light_current_value] 
     + '],\\"bri\\":[' + [actuator_dimmer_current_value] + ']}"}]'
   }
+
+  console.log(act_data);
   
 
   var auth_token = (event.target.getAttribute('platform_request'));
@@ -1513,8 +1464,6 @@ function sensors(e, authorization_token){
                           contentType: "application/json",
                           cache: false,
                           success: function(data){
-
-                            console.log(data);
               
                             if (subscribedResources.indexOf(click_resource_id) != -1)
                               document.getElementById('subscribeResource').innerHTML = "Unsubscribe";
