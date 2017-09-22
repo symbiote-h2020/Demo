@@ -397,10 +397,6 @@ input[type="radio"], input[type="checkbox"] {
 	background: #BABABA;
 }
 
-/*#RGB {
-	height: 20px;
-	background: rgb(128, 128, 128);
-}*/
 #RC .slider-selection {
 	background: red;
 }
@@ -443,7 +439,7 @@ input[type="radio"], input[type="checkbox"] {
 }
 
 #RGB{
-  background: rgb(128, 128, 128);
+  background: greenyellow;
   height: 95px;
   width: 95px;
   -webkit-border-radius: 95px;

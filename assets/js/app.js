@@ -653,7 +653,7 @@ subscribeResource.addEventListener('click', function(event) {
 
 // ----- DOCUMENT READY -----
 $(document).on("ready", function () {
-  // startWebsockets();
+  startWebsockets();
 
   $("#loading").hide();
 
@@ -677,7 +677,7 @@ $(document).on("ready", function () {
     actuator_id = event.target.getAttribute('actuator_id');
     type_desc = event.target.getAttribute('actuator_desc');
 
-    console.log(actuator_id, type_desc);
+    // console.log(actuator_id, type_desc);
     
     sendActuation(actuator_id, type_desc, event);
 
@@ -730,14 +730,10 @@ $(document).on("ready", function () {
     }
 
     if (type_desc == 'rgb light, brightness, state'){
-      actuator_rgb_current_value = '128:128:128:0.5';
 
       $("#R").slider('destroy');
       $("#G").slider('destroy');
       $("#B").slider('destroy');
-      $("#A").slider('destroy');
-
-      actuator_dimmer_current_value = '128';
 
       $("#ex1").slider('destroy');
 
@@ -1109,8 +1105,8 @@ function actuators(e, description, actuator_id, actuator_name, actuator_platform
 
                         // rgb sliders
                         var RGBChange = function() {
-                          $('#RGB').css('background', 'rgba('+r.getValue()+','+g.getValue()+','+b.getValue()+','+a.getValue()+ ')')
-                            actuator_rgb_current_value = r.getValue()+':'+g.getValue()+':'+b.getValue()+':'+a.getValue();
+                          // $('#RGB').css('background', 'rgba('+r.getValue()+','+g.getValue()+','+b.getValue()+','+a.getValue()+ ')')
+                          actuator_rgb_current_value = r.getValue()+':'+g.getValue()+':'+b.getValue()+':'+a.getValue();
                             //console.log('rgb('+r.getValue()+','+g.getValue()+','+b.getValue()+','+a.getValue()+ ')');
                         };
 
@@ -1176,9 +1172,6 @@ function actuators(e, description, actuator_id, actuator_name, actuator_platform
                                   }
                                 }
                               }
-                              
-                              state.rgb.push(state.original_brightness);
-                              delete(state.original_brightness);
                             
                               var X = state.rgb[0] * ( state['brightness'] / state.rgb[1] );
                               var Y = state['brightness'];
@@ -1218,17 +1211,40 @@ function actuators(e, description, actuator_id, actuator_name, actuator_platform
                               var sB = var_B * 255;
 
                               if (sR>255){
-                                sR = 255
+                                sR = 255;
                               }
                               if (sG>255){
-                                sR = 255
+                                sG = 255;
                               }
                               if (sB>255){
-                                sR = 255
+                                sB = 255;
                               }
-                            
-                              state.rgb = [sR, sG, sB];
-                      
+
+                              if (sR<0){
+                                sR = 0;
+                              }
+                              if (sG<0){
+                                sG = 0;
+                              }
+                              if (sB<0){
+                                sB = 0;
+                              }
+
+                              // rgb sliders
+                              var RGBChange = function() {
+                                // $('#RGB').css('background', 'rgb('+r.getValue()+','+g.getValue()+','+b.getValue());
+                                actuator_rgb_current_value = r.getValue()+':'+g.getValue()+':'+b.getValue();
+                                // console.log('rgb('+r.getValue()+','+g.getValue()+','+b.getValue()+ ')');
+                              };
+                              
+                              // $('#RGB').css('background', 'rgb('+sR+','+sG+','+sB+')');
+
+                              // document.body.style.backgroundColor = "red";
+                              // console.log('rgb('+sR+','+sG+','+sB+')');
+                              // document.getElementById('RGB').style.backgroundColor = 'rgb('+sR+','+sG+','+sB+')';
+
+                              // console.log($('#RGB').css('backgroundColor'));
+                              
                               document.getElementById('actuator_explanation').innerHTML = 'This actuator contains a light whose intesity can by controlled, a RGB light whose color can be changed and a light that can be turned on/off. ';
                               
                               document.getElementById('light_switch').style.display = 'block';
@@ -1236,14 +1252,12 @@ function actuators(e, description, actuator_id, actuator_name, actuator_platform
                               // switch button
                               $("[name='my-checkbox']").bootstrapSwitch();
                               $('input[name="my-checkbox"]').bootstrapSwitch('state', state.on);
+
+                              actuator_light_current_value = state.on;
                       
                               $('input[name="my-checkbox"]').on('switchChange.bootstrapSwitch', function(event, state) {
-                                // console.log(state); // true | false
                                 actuator_light_current_value = state;
                               });
-                      
-                              actuator_dimmer_current_value = state.brightness;
-                              document.getElementById('light_dimmer').style.display = 'block';
                               
                               //sliders
                               $('#ex1').slider({
@@ -1253,34 +1267,28 @@ function actuators(e, description, actuator_id, actuator_name, actuator_platform
                                 }
                               });
                       
-                              $('#ex1').slider('setValue', state.brightness);                        
+                              $('#ex1').slider('setValue', state.original_brightness);  
+                              actuator_dimmer_current_value = state.original_brightness;
+                              document.getElementById('light_dimmer').style.display = 'block';                      
                       
-                              document.getElementById('light_rgb').style.display = 'block';                        
+                              document.getElementById('light_rgb').style.display = 'block';
                       
-                              // rgb sliders
-                              var RGBChange = function() {
-                                $('#RGB').css('background', 'rgb('+r.getValue()+','+g.getValue()+','+b.getValue())
-                                  actuator_rgb_current_value = r.getValue()+':'+g.getValue()+':'+b.getValue();
-                                  //console.log('rgb('+r.getValue()+','+g.getValue()+','+b.getValue()+','+a.getValue()+ ')');
-                              };
-                      
-                              r = $('#R').slider()
+                              var r = $('#R').slider()
                                   .on('slide', RGBChange)
                                   .data('slider');
-                              g = $('#G').slider()
+                              var g = $('#G').slider()
                                   .on('slide', RGBChange)
                                   .data('slider');
-                              b = $('#B').slider()
+                              var b = $('#B').slider()
                                   .on('slide', RGBChange)
                                   .data('slider');
                               
-                              $('#R').slider('setValue', state.rgb[0]);
-                              $('#G').slider('setValue', state.rgb[1]);
-                              $('#B').slider('setValue', state.rgb[2]);
+                              $('#R').slider('setValue', sR);
+                              $('#G').slider('setValue', sG);
+                              $('#B').slider('setValue', sB);
                               
-                              $('#RGB').css('background', 'rgba('+state.rgb[0]+','+state.rgb[1]+','+state.rgb[2]+','+state.brightness+ ')')
+                              actuator_rgb_current_value = sR + ':' + sG + ':' + sB;
                               
-                              actuator_rgb_current_value = state.rgb[0] + ':' + state.rgb[1] + ':' + state.rgb[2];
                             },
                             error:function(error){
                               console.log("ERROR");
@@ -1352,7 +1360,7 @@ function sendActuation(actuator_id, type, event){
     r_value = actuator_rgb_current_value.split(':')[0];
     g_value = actuator_rgb_current_value.split(':')[1];
     b_value = actuator_rgb_current_value.split(':')[2];
-    a_value = actuator_rgb_current_value.split(':')[3];
+    // a_value = actuator_rgb_current_value.split(':')[3];
 
     act_data = [{
       "rgb": [parseInt(r_value), parseInt(g_value), parseInt(b_value)],
@@ -1364,10 +1372,7 @@ function sendActuation(actuator_id, type, event){
     + '],\\"on\\":[' + [actuator_light_current_value] 
     + '],\\"bri\\":[' + [actuator_dimmer_current_value] + ']}"}]'
   }
-
-  console.log(act_data);
   
-
   var auth_token = (event.target.getAttribute('platform_request'));
   var actuator_url = event.target.attributes.actuator_url.nodeValue;
   $.ajax({
