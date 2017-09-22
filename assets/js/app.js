@@ -1350,11 +1350,18 @@ function sendActuation(actuator_id, type, event){
           {"name": "luminousIntensity", "value": Math.floor(a_value*100).toString()}
         ]
     }
+
+    act_data = JSON.stringify(act_data);
     
   }
-  else if (type == 'dimmer'){
-   act_data = {"inputParameters": [{"name": "quantityOfLight", "value": actuator_dimmer_current_value.toString()}]};
+  else if (type == 'curtain'){
+   act_data = {"inputParameters": [{"name": "quantityOfLight", "value": actuator_curtain_current_value.toString()}]};
+   act_data = JSON.stringify(act_data);
   }
+  else if (type == 'dimmer'){
+    act_data = {"inputParameters": [{"name": "quantityOfLight", "value": actuator_dimmer_current_value.toString()}]};
+    act_data = JSON.stringify(act_data);bbb
+   }
   else if (type == 'rgb light, brightness, state') {
 
     r_value = actuator_rgb_current_value.split(':')[0];
