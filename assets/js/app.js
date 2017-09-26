@@ -17,6 +17,7 @@ var websockets_connection_error = 0;
 var actuator_current_value = 0;
 
 var symbioteUrl = "https://symbiote-dev.man.poznan.pl"
+var symbioteClientUrl = "http://localhost:8777"
 
 subscribedResources = Array();
 
@@ -1159,7 +1160,7 @@ function sensors(e, authorization_token){
 
     //var row_url = symbioteUrl + ":8100/coreInterface/v1/resourceUrls?id=" + e.target.parentNode.id
 
-    var row_url = "http://localhost:8777/get_resource_url/";
+    var row_url = symbioteClientUrl + "/get_resource_url/";
 
     var platform_id = e.target.parentNode.getAttribute('platform_id');
 
@@ -1206,7 +1207,7 @@ function sensors(e, authorization_token){
 
               // Get the historical data for the clicked resource (using url returned by the firs request and the specific token for the pretended platform that the resource belogns)
               $.ajax({
-                url: "http://localhost:8777/observations_with_home_token?resourceUrl=" + device_url + "&platformId=" + platform_id,
+                url: symbioteClientUrl + "/observations_with_home_token?resourceUrl=" + device_url + "&platformId=" + platform_id,
                 type: "POST",
                 contentType: "application/json",
                 cache: false,
