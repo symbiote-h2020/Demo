@@ -159,16 +159,16 @@ function handleClickRow(e){
     description = e.target.parentNode.getAttribute('description');
     type = e.target.parentNode.getAttribute('type');
 
-    if (type == 'ActuatingService'){
+    //if (type == 'ActuatingService'){
       // console.log("actuator")
-      actuator_id = e.target.parentNode.getAttribute('id');
-      actuator_name = e.target.parentNode.getAttribute('identification');
-      actuator_platform_id = e.target.parentNode.getAttribute('platform_id');
+    //  actuator_id = e.target.parentNode.getAttribute('id');
+    //  actuator_name = e.target.parentNode.getAttribute('identification');
+    //  actuator_platform_id = e.target.parentNode.getAttribute('platform_id');
 
-      actuators(e, description, actuator_id, actuator_name, actuator_platform_id);
-    }
-    if (type == 'StationarySensor')
-      sensors(e, authorization_token);
+    //  actuators(e, description, actuator_id, actuator_name, actuator_platform_id);
+    //}
+    //if (type == 'StationarySensor')
+    sensors(e, authorization_token);
   //}
 }
 
@@ -1182,6 +1182,9 @@ function sensors(e, authorization_token){
           contentType: false,
           success: function(data){
             var device_url = data.body[e.target.parentNode.id];
+            //device_url = device_url + "/Observations&platformId=" + platform_id;
+            device_url = device_url + "/Observations";
+            console.log(device_url);
 
             var name = e.target.parentNode.getAttribute('identification');
 
@@ -1199,16 +1202,16 @@ function sensors(e, authorization_token){
 
               var form = new FormData();
               form.append("resourceUrl", device_url);  
+              form.append("platformId", platform_id);
 
               // Get the historical data for the clicked resource (using url returned by the firs request and the specific token for the pretended platform that the resource belogns)
               $.ajax({
-                url: "http://localhost:8777/observations/",
+                url: "http://localhost:8777/observations_with_home_token?resourceUrl=" + device_url + "&platformId=" + platform_id,
                 type: "POST",
-                data: form,
-                processData: false,
-                contentType: false,
                 contentType: "application/json",
                 cache: false,
+                processData: false,
+                contentType: false,
                 success: function(data){
     
                   if (subscribedResources.indexOf(click_resource_id) != -1)
@@ -1227,41 +1230,38 @@ function sensors(e, authorization_token){
                       break;
                     }
                   }
-
-
-                  historical_data = JSON.parse(data)
                   
                   graphDict = {}
                   $("#selectBox").empty();
 
-                  for (var i = 0; i < historical_data.length; i ++){
-                    if (historical_data[i]['location'])
-                      var latitude = historical_data[i]['location']['latitude']
+                  for (var i = 0; i < data.length; i ++){
+                    if (data[i]['location'])
+                      var latitude = data[i]['location']['latitude']
                     else
                       var latitude = "NA"
                     
-                    if (historical_data[i]['location'])
-                      var longitude = historical_data[i]['location']['longitude']
+                    if (data[i]['location'])
+                      var longitude = data[i]['location']['longitude']
                     else
                       var longitude = "NA"
                     
-                    if (historical_data[i]['obsValues'][0]['obsProperty']['label'])
-                      var observedProperty = historical_data[i]['obsValues'][0]['obsProperty']['label']
+                    if (data[i]['obsValues'][0]['obsProperty']['label'])
+                      var observedProperty = data[i]['obsValues'][0]['obsProperty']['label']
                     else
                       var observedProperty = "NA"
                     
-                    if (historical_data[i]['obsValues'][0]['uom']['symbol'])
-                      var unit = historical_data[i]['obsValues'][0]['uom']['symbol']
+                    if (data[i]['obsValues'][0]['uom']['symbol'])
+                      var unit = data[i]['obsValues'][0]['uom']['symbol']
                     else
                       var unit = "NA"
 
-                    if (historical_data[i]['obsValues'][0]['value'])
-                      var measurementValue = historical_data[i]['obsValues'][0]['value']
+                    if (data[i]['obsValues'][0]['value'])
+                      var measurementValue = data[i]['obsValues'][0]['value']
                     else
                       var measurementValue = "NA"
                     
-                    if (historical_data[i]['samplingTime'])
-                      var samplingTime = historical_data[i]['samplingTime']
+                    if (data[i]['samplingTime'])
+                      var samplingTime = data[i]['samplingTime']
                     else 
                       var samplingTime = "NA"
 
