@@ -1098,30 +1098,62 @@ function actuators(e, description, actuator_id, actuator_name, actuator_platform
                         document.getElementById('A').style.display = 'initial';
                         document.getElementById('alpha').style.display = 'initial';
 
-                        actuator_rgb_current_value = '128:128:128:0.5';
-
                         document.getElementById('actuator_explanation').innerHTML = 'This actuator contains a RGB light whose color can be changed. <p></p>Use the bar to change the light color of this actuator and the press "Actuate" to send the action.';
                         document.getElementById('light_rgb').style.display = 'initial';
 
-                        // rgb sliders
-                        var RGBChange = function() {
-                          // $('#RGB').css('background', 'rgba('+r.getValue()+','+g.getValue()+','+b.getValue()+','+a.getValue()+ ')')
-                          actuator_rgb_current_value = r.getValue()+':'+g.getValue()+':'+b.getValue()+':'+a.getValue();
-                            //console.log('rgb('+r.getValue()+','+g.getValue()+','+b.getValue()+','+a.getValue()+ ')');
-                        };
+                        actuator_rgb_current_value = '128:128:128:0.5';
 
-                        r = $('#R').slider()
-                            .on('slide', RGBChange)
-                            .data('slider');
-                        g = $('#G').slider()
-                            .on('slide', RGBChange)
-                            .data('slider');
-                        b = $('#B').slider()
-                            .on('slide', RGBChange)
-                            .data('slider');
-                        a = $('#A').slider()
-                            .on('slide', RGBChange)
-                            .data('slider')
+                        var url = "https://symbiote.nextworks.it:8102/rap/Sensors('" + actuator_id + "')/Observations";
+
+                        $.ajax({
+                            url: url,
+                            beforeSend: function(xhr){xhr.setRequestHeader('X-Auth-Token', resource_token);},
+                            type: "GET",
+                            contentType: "application/json",
+                            cache: false,
+                            success: function(data) {
+
+                              rgba_r = data[0].obsValues.value;
+                              rgba_g = data[1].obsValues.value;
+                              rgba_b = data[2].obsValues.value;
+                              rgba_a = data[3].obsValues.value;
+
+                              actuator_rgb_current_value = '' + rgba_r + ':' + rgba_g + ':' + rgba_b + ':' + rgba_a;
+
+                              // rgb sliders
+                              var RGBChange = function() {
+                                // $('#RGB').css('background', 'rgba('+r.getValue()+','+g.getValue()+','+b.getValue()+','+a.getValue()+ ')')
+                                actuator_rgb_current_value = r.getValue()+':'+g.getValue()+':'+b.getValue()+':'+a.getValue();
+                                  //console.log('rgb('+r.getValue()+','+g.getValue()+','+b.getValue()+','+a.getValue()+ ')');
+                              };
+
+                              r = $('#R').slider()
+                                  .on('slide', RGBChange)
+                                  .data('slider');
+                              g = $('#G').slider()
+                                  .on('slide', RGBChange)
+                                  .data('slider');
+                              b = $('#B').slider()
+                                  .on('slide', RGBChange)
+                                  .data('slider');
+                              a = $('#A').slider()
+                                  .on('slide', RGBChange)
+                                  .data('slider')
+                          },
+                            error:function(error){
+                              console.log("ERROR");
+                              console.log(error);
+                              $('#actuatorsModal').modal('hide');
+                              $("#loading").hide();
+
+                              document.getElementById('errorModalTitle').innerHTML = 'Something went wrong <p></p>'
+                              document.getElementById('errorModalClose').style.display = 'initial';
+                              document.getElementById('errorLabel').innerHTML = 'It was not possible to access to this actuator. Please try again later.'
+                              $('#errorModal').modal('show');
+                              // TODO add error message
+                        
+                            }
+                          });
                       }
 
                       if (description == 'rgb light, brightness, state'){
