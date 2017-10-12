@@ -1360,7 +1360,7 @@ function sendActuation(actuator_id, type, event){
   }
   else if (type == 'dimmer'){
     act_data = {"inputParameters": [{"name": "quantityOfLight", "value": actuator_dimmer_current_value.toString()}]};
-    act_data = JSON.stringify(act_data);bbb
+    act_data = JSON.stringify(act_data);
    }
   else if (type == 'rgb light, brightness, state') {
 
