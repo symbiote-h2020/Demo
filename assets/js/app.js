@@ -278,6 +278,8 @@ function setMarker(lat, lon){
 
 // Get the sensors
 function getSensors(){
+  //TODO no need for array of parameters 
+  //when we already know there will be at least one value
 
   $(document).ajaxStop(function() {
     // LAST AJAX CALL Finishes
@@ -288,7 +290,10 @@ function getSensors(){
 
 
   });
-  var url = symbioteUrl + ':8100/coreInterface/v1/query';
+  var url = symbioteClientUrl + '/query';
+
+  search.push("homePlatformId=SymbIoTe_Core_AAM");
+
   if ($('#platform_name').val())
     search.push("platform_name="+$('#platform_name').val())
 
@@ -331,13 +336,11 @@ function getSensors(){
   if ($('#property').val())
     search.push("observed_property="+$('#property').val())
 
-  if (search.length != 0){
-    url += "?"
-    for (var i = 0; i <search.length; i++){
-      url += search[i];
-      if(i != search.length-1)
-        url += "&"
-    }
+  url += "?"
+  for (var i = 0; i <search.length; i++){
+    url += search[i];
+    if(i != search.length-1)
+      url += "&"
   }
 
   $("#loading").show();
@@ -349,7 +352,7 @@ function getSensors(){
         cache: false,
         success: function(data){
           //console.log(data);
-          if(data.resources.length > 0){
+          if(data.body.length > 0){
             search = [];
 
             $('#map').animate({
@@ -362,7 +365,7 @@ function getSensors(){
             document.getElementById("sensorsContent").style.display = "initial";
             document.getElementById("expandButton").style.display = "initial";
 
-            $.each(data.resources, function( index, each ) {
+            $.each(data.body, function( index, each ) {
               parseSensor(each);
             });
           }
@@ -1165,7 +1168,8 @@ function sensors(e, authorization_token){
     var platform_id = e.target.parentNode.getAttribute('platform_id');
 
     var form = new FormData();
-    form.append("resourceId", e.target.parentNode.id);  
+    form.append("resourceId", e.target.parentNode.id);
+    form.append("platformId", platform_id);
 
     $("#loading").show();
 
