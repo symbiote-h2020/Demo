@@ -17,7 +17,7 @@ var websockets_connection_error = 0;
 var actuator_current_value = 0;
 
 var symbioteUrl = "https://symbiote-dev.man.poznan.pl"
-var symbioteClientUrl = "http://localhost:8777"
+var symbioteClientUrl = "http://symbiote-dev.man.poznan.pl:8777"
 
 subscribedResources = Array();
 
@@ -253,16 +253,18 @@ function setMarker(lat, lon){
       }
 
       var row = table
-      .row.add( [name, data.locationLongitude, data.locationLatitude, data.locationAltitude, platform, data.observedProperties, locationName, data.description, data.resourceType] )
+      .row.add( [name, data.locationLongitude, data.locationLatitude, data.locationAltitude, platform, data.observedProperties, locationName, data.description, data.resourceType, (data.ranking * 100).toFixed(2)] )
       .draw()
       .node();
       //
+
       row.setAttribute("id", data.id);
       row.setAttribute("platform_id", data.platformId);
       row.setAttribute("identification", data.name);
       row.setAttribute("class", "clickable-row");
       row.setAttribute("description", data.description);
       row.setAttribute("type", data.resourceType);
+      row.setAttribute("ranking", data.ranking * 100.0);
       row.addEventListener('click', handleClickRow);
     //}
 
