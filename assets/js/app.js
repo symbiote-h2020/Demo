@@ -1252,13 +1252,21 @@ function sensors(e, authorization_token){
                     else
                       var longitude = "NA"
                     
-                    if (data[i]['obsValues'][0]['obsProperty']['label'])
-                      var observedProperty = data[i]['obsValues'][0]['obsProperty']['label']
+                    if (data[i]['obsValues'][0]['obsProperty'])
+                      if (data[i]['obsValues'][0]['obsProperty']['label'])
+                        var observedProperty = data[i]['obsValues'][0]['obsProperty']['label']
+                      else if (data[i]['obsValues'][0]['obsProperty']['name'])
+                        var observedProperty = data[i]['obsValues'][0]['obsProperty']['name']
+                      else
+                        var observedProperty = "NA"
                     else
                       var observedProperty = "NA"
                     
-                    if (data[i]['obsValues'][0]['uom']['symbol'])
-                      var unit = data[i]['obsValues'][0]['uom']['symbol']
+                    if (data[i]['obsValues'][0]['uom'])
+                      if (data[i]['obsValues'][0]['uom']['symbol'])
+                        var unit = data[i]['obsValues'][0]['uom']['symbol']
+                      else
+                        var unit = "NA"
                     else
                       var unit = "NA"
 
@@ -1283,7 +1291,10 @@ function sensors(e, authorization_token){
 
                     //console.log(graphDict);
 
-                    observationTime = samplingTime.split('T')[0] + ', ' + samplingTime.split('T')[1].split('Z')[0].split('.')[0];
+                    if(samplingTime != "NA")
+                      observationTime = samplingTime.split('T')[0] + ', ' + samplingTime.split('T')[1].split('Z')[0].split('.')[0];
+                    else
+                      observationTime = "NA";
 
                     var table = $('#historicTable').DataTable();
                     var row = table
