@@ -27,7 +27,18 @@ var total = 0;
 
 var table;
 
-var properties = {1:'SO2', 5:'PM10', 7:'O3', 8:'NO2', 10:'CO', 38:'NO', 53:'Pressure', 54:'Temperature', 58:'Relative humidity', 6001:'PM2.5', };
+var properties = {
+  1: 'SO2',
+  5: 'PM10',
+  7: 'O3',
+  8: 'NO2',
+  10: 'CO',
+  38: 'NO',
+  53: 'Pressure',
+  54: 'Temperature',
+  58: 'Relative humidity',
+  6001: 'PM2.5',
+};
 
 $(window).resize(function() {
   sizeLayerControl();
@@ -80,7 +91,7 @@ map.on("layerremove", updateAttribution);
 var attributionControl = L.control({
   position: "bottomright"
 });
-attributionControl.onAdd = function (map) {
+attributionControl.onAdd = function(map) {
   var div = L.DomUtil.create("div", "leaflet-control-attribution");
   // div.innerHTML = "<span class='hidden-xs'>Developed by <a href='http://bryanmcbride.com'>bryanmcbride.com</a> | </span><a href='#' onclick='$(\"#attributionModal\").modal(\"show\"); return false;'>Attribution</a>";
   return div;
@@ -132,55 +143,54 @@ if (document.body.clientWidth <= 767) {
 
 // ----- FUNCTIONS -----
 
-function expandMap (){
-  if(document.getElementById('map').style.height == '85%'){
+function expandMap() {
+  if (document.getElementById('map').style.height == '85%') {
     var height = '50%';
-    document.getElementById("expandButton").value="Expand Map";
-  }else{
+    document.getElementById("expandButton").value = "Expand Map";
+  } else {
     var height = '85%';
-    document.getElementById("expandButton").value="Reduce Map";
+    document.getElementById("expandButton").value = "Reduce Map";
   }
   $('#map').animate({
     height: height
-  }, 500, function() {
-  });
+  }, 500, function() {});
 
   var bounds = new L.LatLngBounds(coordinates);
   map.fitBounds(bounds);
 }
 
 //  Handle the click in a row that opens a modal with ths historic of the sensor of the clicked line
-function handleClickRow(e){
+function handleClickRow(e) {
   // if (!sessionStorage.getItem("authorization")){
   //   document.getElementById('errorLabel').innerHTML = 'Please make sure you are signed in to access resources historical data.'
   //   $('#errorModal').modal('show');
   // }
   //else{
-    authorization_token = sessionStorage.getItem("authorization");
-    description = e.target.parentNode.getAttribute('description');
-    type = e.target.parentNode.getAttribute('type');
+  authorization_token = sessionStorage.getItem("authorization");
+  description = e.target.parentNode.getAttribute('description');
+  type = e.target.parentNode.getAttribute('type');
 
-    //if (type == 'ActuatingService'){
-      // console.log("actuator")
-    //  actuator_id = e.target.parentNode.getAttribute('id');
-    //  actuator_name = e.target.parentNode.getAttribute('identification');
-    //  actuator_platform_id = e.target.parentNode.getAttribute('platform_id');
+  //if (type == 'ActuatingService'){
+  // console.log("actuator")
+  //  actuator_id = e.target.parentNode.getAttribute('id');
+  //  actuator_name = e.target.parentNode.getAttribute('identification');
+  //  actuator_platform_id = e.target.parentNode.getAttribute('platform_id');
 
-    //  actuators(e, description, actuator_id, actuator_name, actuator_platform_id);
-    //}
-    //if (type == 'StationarySensor')
-    sensors(e, authorization_token);
+  //  actuators(e, description, actuator_id, actuator_name, actuator_platform_id);
+  //}
+  //if (type == 'StationarySensor')
+  sensors(e, authorization_token);
   //}
 }
 
 // Remove data (sensors) from previous search
-function deleteSensor(){
-  for (var i = 0; i < sensorsMarkers.length; i++){
+function deleteSensor() {
+  for (var i = 0; i < sensorsMarkers.length; i++) {
     map.removeLayer(sensorsMarkers[i]);
   }
 }
 
-function setMarker(lat, lon){
+function setMarker(lat, lon) {
   var marker = L.marker([lat, lon]).addTo(map);
   sensorsMarkers.push(marker);
 
@@ -188,98 +198,101 @@ function setMarker(lat, lon){
     var content = "<table class='table table-striped' cellspacing='0' <thead> <th>Longitude</th> <th>Latitude</th> </thead> <tbody> <tr> <td>" + e.latlng.lng + " </td> <td>" + e.latlng.lat + " </td> </tr></tbody></table> <p></p>"
     content += "<table class='table table-hover table-striped' cellspacing='0'> <thead> <th>Sensor</th> <th>Platform</th> <th> Observed Properties </th> <th> Location </th> <th> Type </th> </thead> <tbody> ";
 
-    for (i = 0; i < coordinates.length; i++){
-      if(coordinates[i][0] == e.latlng.lat && coordinates[i][1] == e.latlng.lng){
-        content += "<tr><td>" + sensorsName[i] + "</td>" + "<td>" + platformsName[i] + "</td>" + "<td>" + obsProperties[i] + "</td>"+ "<td>" + locations[i] + "</td><td>"+ resources_type[i] + "</td></tr>"
+    for (i = 0; i < coordinates.length; i++) {
+      if (coordinates[i][0] == e.latlng.lat && coordinates[i][1] == e.latlng.lng) {
+        content += "<tr><td>" + sensorsName[i] + "</td>" + "<td>" + platformsName[i] + "</td>" + "<td>" + obsProperties[i] + "</td>" + "<td>" + locations[i] + "</td><td>" + resources_type[i] + "</td></tr>"
       }
     }
     content += "</tbody></table> <p></p>"
-    var popup = L.popup({maxHeight:500, maxWidth:800})
-     .setLatLng(e.latlng)
-     .setContent(content)
-     .openOn(map);
+    var popup = L.popup({
+        maxHeight: 500,
+        maxWidth: 800
+      })
+      .setLatLng(e.latlng)
+      .setContent(content)
+      .openOn(map);
   });
 
 }
- 
- // parse sensors data
- function parseSensor(data) {
-    $('#searchModal').modal('hide');
-    //if(data.locationLatitude && data.locationLongitude){
 
-      var currentCoordinates = Array();
-      
-      currentCoordinates.push(data.locationLatitude);
-      currentCoordinates.push(data.locationLongitude);
-      coordinates.push(currentCoordinates);
+// parse sensors data
+function parseSensor(data) {
+  $('#searchModal').modal('hide');
+  //if(data.locationLatitude && data.locationLongitude){
 
-      
-      // var bounds = new L.LatLngBounds(coordinates);
-      // map.fitBounds(bounds);
+  var currentCoordinates = Array();
 
-      owners.push(data.owner);
-      sensorsName.push(data.name);
-      platformsName.push(data.platformName);
-      obsProperties.push(data.observedProperties);
-      locations.push(data.locationName);
-      type = data.resourceType[0].split('#')
-      resources_type.push(type[type.length-1]);
+  currentCoordinates.push(data.locationLatitude);
+  currentCoordinates.push(data.locationLongitude);
+  coordinates.push(currentCoordinates);
 
-      // console.log(owners.length, sensorsName.length, platformsName.length, obsProperties.length, locations.length, type.length, resources_type.length, coordinates.length);
 
-      if(data.locationLatitude !== null && data.locationLongitude !== null){
-        setMarker(data.locationLatitude, data.locationLongitude);
-      }
+  // var bounds = new L.LatLngBounds(coordinates);
+  // map.fitBounds(bounds);
 
-      // if (!data.Name)
-      //   name = "unknown"
-      // else
-      name = data.name
-      if (!data.platformName)
-        platform = "undefined"
-      else
-        platform = data.platformName
+  owners.push(data.owner);
+  sensorsName.push(data.name);
+  platformsName.push(data.platformName);
+  obsProperties.push(data.observedProperties);
+  locations.push(data.locationName);
+  type = data.resourceType[0].split('#')
+  resources_type.push(type[type.length - 1]);
 
-      var table = $('#sensorsTable').DataTable();
+  // console.log(owners.length, sensorsName.length, platformsName.length, obsProperties.length, locations.length, type.length, resources_type.length, coordinates.length);
 
-      var locationName = data.locationName.substring(data.locationName.lastIndexOf("/") + 1)
+  if (data.locationLatitude !== null && data.locationLongitude !== null) {
+    setMarker(data.locationLatitude, data.locationLongitude);
+  }
 
-      for (var i = 0; i < data.observedProperties.length; i++) {
-        data.observedProperties[i] = data.observedProperties[i].substring(data.observedProperties[i].lastIndexOf("/") + 1 )
-      }
-      
-      for (var i = 0; i < data.resourceType.length; i++) {
-        data.resourceType[i] = data.resourceType[i].substring(data.resourceType[i].lastIndexOf("#") + 1 )
-      }
+  // if (!data.Name)
+  //   name = "unknown"
+  // else
+  name = data.name
+  if (!data.platformName)
+    platform = "undefined"
+  else
+    platform = data.platformName
 
-      var row = table
-      .row.add( [name, data.locationLongitude, data.locationLatitude, data.locationAltitude, platform, data.observedProperties, locationName, data.description, data.resourceType, (data.ranking * 100).toFixed(2)] )
-      .draw()
-      .node();
-      //
+  var table = $('#sensorsTable').DataTable();
 
-      row.setAttribute("id", data.id);
-      row.setAttribute("platform_id", data.platformId);
-      row.setAttribute("identification", data.name);
-      row.setAttribute("class", "clickable-row");
-      row.setAttribute("description", data.description);
-      row.setAttribute("type", data.resourceType);
-      row.setAttribute("ranking", data.ranking * 100.0);
-      row.addEventListener('click', handleClickRow);
-    //}
+  var locationName = data.locationName.substring(data.locationName.lastIndexOf("/") + 1)
 
-    // console.log("SENSORS MARKER "+sensorsMarkers.length);
-    // console.log("SENSORS NAME "+sensorsName.length);
-    // console.log("PLATFORMS NAME "+platformsName.length);
-    // console.log("OWNERS "+owners.length);
-    // console.log("COORDINATES "+coordinates.length);
-    // console.log("PROPERTIES "+obsProperties.length);
-    // console.log("LOCATIONS "+locations.length);
+  for (var i = 0; i < data.observedProperties.length; i++) {
+    data.observedProperties[i] = data.observedProperties[i].substring(data.observedProperties[i].lastIndexOf("/") + 1)
+  }
 
-  };
+  for (var i = 0; i < data.resourceType.length; i++) {
+    data.resourceType[i] = data.resourceType[i].substring(data.resourceType[i].lastIndexOf("#") + 1)
+  }
+
+  var row = table
+    .row.add([name, data.locationLongitude, data.locationLatitude, data.locationAltitude, platform, data.observedProperties, locationName, data.description, data.resourceType, (data.ranking * 100).toFixed(2)])
+    .draw()
+    .node();
+  //
+
+  row.setAttribute("id", data.id);
+  row.setAttribute("platform_id", data.platformId);
+  row.setAttribute("identification", data.name);
+  row.setAttribute("class", "clickable-row");
+  row.setAttribute("description", data.description);
+  row.setAttribute("type", data.resourceType);
+  row.setAttribute("ranking", data.ranking * 100.0);
+  row.addEventListener('click', handleClickRow);
+  //}
+
+  // console.log("SENSORS MARKER "+sensorsMarkers.length);
+  // console.log("SENSORS NAME "+sensorsName.length);
+  // console.log("PLATFORMS NAME "+platformsName.length);
+  // console.log("OWNERS "+owners.length);
+  // console.log("COORDINATES "+coordinates.length);
+  // console.log("PROPERTIES "+obsProperties.length);
+  // console.log("LOCATIONS "+locations.length);
+
+};
 
 // Get the sensors
-function getSensors(){
+function getSensors() {
   //TODO no need for array of parameters 
   //when we already know there will be at least one value
 
@@ -297,25 +310,25 @@ function getSensors(){
   search.push("homePlatformId=SymbIoTe_Core_AAM");
 
   if ($('#platform_name').val())
-    search.push("platform_name="+$('#platform_name').val())
+    search.push("platform_name=" + $('#platform_name').val())
 
   if ($('#owner').val())
-    search.push("owner="+$('#owner').val())
+    search.push("owner=" + $('#owner').val())
 
   if ($('#name').val())
-    search.push("name="+$('#name').val())
+    search.push("name=" + $('#name').val())
 
   if ($('#id').val())
-    search.push("id="+$('#id').val())
+    search.push("id=" + $('#id').val())
 
   if ($('#description').val())
-    search.push("description="+$('#description').val())
+    search.push("description=" + $('#description').val())
 
   if ($('#location_name').val())
-    search.push("location_name="+$('#location_name').val())
+    search.push("location_name=" + $('#location_name').val())
 
   if ($('#resource_type').val())
-    search.push("type="+$('#resource_type').val())
+    search.push("type=" + $('#resource_type').val())
 
   // if ($('#latitude').val())
   //   search.push("location_lat="+$('#latitude').val())
@@ -323,91 +336,92 @@ function getSensors(){
   // if ($('#longitude').val())
   //   search.push("location_long="+$('#longitude').val())
 
-  if($('#geoloc').val()){
+  if ($('#geoloc').val()) {
     var res = $('#geoloc').val().split(",");
     var latitude = res[0].toString();
     var longitude = res[1].toString();
 
-    search.push("location_lat="+latitude)
-    search.push("location_long="+longitude)
+    search.push("location_lat=" + latitude)
+    search.push("location_long=" + longitude)
   }
 
   if ($('#distance').val())
-    search.push("max_distance="+$('#distance').val())
+    search.push("max_distance=" + $('#distance').val())
 
   if ($('#property').val())
-    search.push("observed_property="+$('#property').val())
+    search.push("observed_property=" + $('#property').val())
 
   url += "?"
-  for (var i = 0; i <search.length; i++){
+  for (var i = 0; i < search.length; i++) {
     url += search[i];
-    if(i != search.length-1)
+    if (i != search.length - 1)
       url += "&"
   }
 
   $("#loading").show();
   $.ajax({
-        url: url,
-        type: "GET",
-        beforeSend: function(xhr){xhr.setRequestHeader('X-Auth-Token', 'my-token');},
-        dataType: "json",
-        cache: false,
-        success: function(data){
-          //console.log(data);
-          if(data.body.length > 0){
-            search = [];
+    url: url,
+    type: "GET",
+    beforeSend: function(xhr) {
+      xhr.setRequestHeader('X-Auth-Token', 'my-token');
+    },
+    dataType: "json",
+    cache: false,
+    success: function(data) {
+      //console.log(data);
+      if (data.body.length > 0) {
+        search = [];
 
-            $('#map').animate({
-              height: '50%'
-            }, 500, function() {
-              document.getElementById("expandButton").value="Expand Map";
-            });
-            document.getElementById("errorFooter").style.display = "none";
+        $('#map').animate({
+          height: '50%'
+        }, 500, function() {
+          document.getElementById("expandButton").value = "Expand Map";
+        });
+        document.getElementById("errorFooter").style.display = "none";
 
-            document.getElementById("sensorsContent").style.display = "initial";
-            document.getElementById("expandButton").style.display = "initial";
+        document.getElementById("sensorsContent").style.display = "initial";
+        document.getElementById("expandButton").style.display = "initial";
 
-            $.each(data.body, function( index, each ) {
-              parseSensor(each);
-            });
-          }
-          else{
-            search = [];
+        $.each(data.body, function(index, each) {
+          parseSensor(each);
+        });
+      } else {
+        search = [];
 
-            $('#searchModal').modal('show');
+        $('#searchModal').modal('show');
 
-            document.getElementById("errorFooter").style.display = "initial";
-            document.getElementById("errorSearch").innerHTML="The search did not return any results."
-            
-            document.getElementById("sensorsContent").style.display = "none";
-            document.getElementById("expandButton").style.display = "none";
+        document.getElementById("errorFooter").style.display = "initial";
+        document.getElementById("errorSearch").innerHTML = "The search did not return any results."
 
-            $('#map').animate({
-              height: '85%'
-            }, 500, function() {
+        document.getElementById("sensorsContent").style.display = "none";
+        document.getElementById("expandButton").style.display = "none";
 
-            });
-          }
-        },
-        error:function(){
-          // TODO add error message
-          search = [];
+        $('#map').animate({
+          height: '85%'
+        }, 500, function() {
 
-          $('#searchModal').modal('show');
+        });
+      }
+    },
+    error: function() {
+      // TODO add error message
+      search = [];
 
-          document.getElementById("errorFooter").style.display = "initial";
-          document.getElementById("errorSearch").innerHTML="It was not possible to proceed with the search. Please try again."
-          //
-          document.getElementById("sensorsContent").style.display = "none";
-          document.getElementById("expandButton").style.display = "none";
+      $('#searchModal').modal('show');
 
-          $('#map').animate({
-            height: '85%'
-          }, 500, function() {
+      document.getElementById("errorFooter").style.display = "initial";
+      document.getElementById("errorSearch").innerHTML = "It was not possible to proceed with the search. Please try again."
+        //
+      document.getElementById("sensorsContent").style.display = "none";
+      document.getElementById("expandButton").style.display = "none";
 
-          });
-        }
-    });
+      $('#map').animate({
+        height: '85%'
+      }, 500, function() {
+
+      });
+    }
+  });
 }
 
 // ----- EVENT LISTENERS -----
@@ -420,10 +434,10 @@ searchTopBar.addEventListener('click', function() {
   document.getElementById("resetLocation").style.display = "none";
 
   document.getElementById("errorFooter").style.display = "none";
-  document.getElementById("errorSearch").innerHTML="";
+  document.getElementById("errorSearch").innerHTML = "";
   document.getElementById("distance").style.display = "none";
 
-  if($('#geoloc').val()){
+  if ($('#geoloc').val()) {
     $("#geoloc").val("");
   }
   $('#geoloc').leafletLocationPicker();
@@ -453,7 +467,7 @@ searchTopBar.addEventListener('click', function() {
     $('#property').val("")
 
   if ($('#resource_type').val())
-  $('#resource_type').val("")
+    $('#resource_type').val("")
 
 }, false);
 
@@ -518,20 +532,19 @@ searchModalButton.addEventListener('click', function() {
   document.getElementById("sensorsContent").style.display = "none";
   document.getElementById("expandButton").style.display = "none";
 
-  $(".leaflet-locpicker-map" ).hide();
+  $(".leaflet-locpicker-map").hide();
 
   var table = $('#sensorsTable').DataTable();
 
   var rows = table.rows().remove().draw();
 
-  if($('#geoloc').val()){
+  if ($('#geoloc').val()) {
     var res = $('#geoloc').val().split(",");
     var latitude = res[0].toString();
     var longitude = res[1].toString();
 
     map.setView([latitude, longitude], 4);
-  }
-  else
+  } else
     map.setView([47.079069, 16.189928], 4);
 
   $('#map').animate({
@@ -554,7 +567,7 @@ searchModalButton.addEventListener('click', function() {
 }, false);
 
 closeSearchModalButton.addEventListener('click', function() {
-  $(".leaflet-locpicker-map" ).hide();
+  $(".leaflet-locpicker-map").hide();
 }, false);
 
 close_graph.addEventListener('click', function() {
@@ -576,7 +589,7 @@ graphicalReport.addEventListener('click', function() {
   var graph_values = [];
   var graph_times = [];
 
-  for (var i = 0; i < graphDict[selected_propertie].length; i++){
+  for (var i = 0; i < graphDict[selected_propertie].length; i++) {
     graph_values.push(graphDict[selected_propertie][i][0]);
 
     time = graphDict[selected_propertie][i][1].split('T')[1].split('.')[0]
@@ -589,31 +602,30 @@ graphicalReport.addEventListener('click', function() {
   var myLineChart = new Chart(ctx, {
     type: 'line',
     data: {
-    labels: graph_times,
-    datasets: [{ 
+      labels: graph_times,
+      datasets: [{
         data: graph_values,
         label: selected_propertie,
         borderColor: "#3e95cd",
         fill: false
-      }
-    ]
-  },
-    options: {
-    scales: {
-      xAxes: [{
-        ticks: {
-          autoSkip: false,
-          maxRotation: 90,
-          minRotation: 90
-        }
       }]
+    },
+    options: {
+      scales: {
+        xAxes: [{
+          ticks: {
+            autoSkip: false,
+            maxRotation: 90,
+            minRotation: 90
+          }
+        }]
+      }
     }
-  }
-});
+  });
 }, false);
 
 resetLocation.addEventListener('click', function() {
-  if($('#geoloc').val()){
+  if ($('#geoloc').val()) {
     $("#geoloc").val("");
     $('#geoloc').leafletLocationPicker();
   }
@@ -632,20 +644,20 @@ subscribeResource.addEventListener('click', function(event) {
 
   resource_platform_websocket = webSockets[subscribe_resource_platform];
 
-  if(subscribedResources.indexOf(subscribe_resource_id) == -1){
+  if (subscribedResources.indexOf(subscribe_resource_id) == -1) {
     var result = subscriptions(subscribe_resource_id, subscribe_resource_platform, resource_platform_websocket, 1); //subscribe => type = 1
 
-    if (result == 1){ //successfull subscribe
+    if (result == 1) { //successfull subscribe
       subscribedResources.push(subscribe_resource_id);
-    }else{
+    } else {
 
     }
-  }else{
+  } else {
     var result = subscriptions(subscribe_resource_id, subscribe_resource_platform, resource_platform_websocket, 0); //unsubscribe => type = 0
 
-    if (result == 0){ //successfull unsubscribe
+    if (result == 0) { //successfull unsubscribe
       subscribedResources.pop(subscribe_resource_id);
-    }else{
+    } else {
 
     }
   }
@@ -655,7 +667,7 @@ subscribeResource.addEventListener('click', function(event) {
 
 
 // ----- DOCUMENT READY -----
-$(document).on("ready", function () {
+$(document).on("ready", function() {
   //startWebsockets();
 
   $("#loading").hide();
@@ -679,10 +691,10 @@ $(document).on("ready", function () {
   actuateButton.addEventListener('click', function(event) {
     actuator_id = event.target.getAttribute('actuator_id');
     type_desc = event.target.getAttribute('actuator_desc');
-    
+
     sendActuation(actuator_id, type_desc, event);
 
-    if(type_desc == 'rgb light' || type_desc == 'RGBw Wall'){
+    if (type_desc == 'rgb light' || type_desc == 'RGBw Wall') {
       actuator_current_value = '128:128:128:0.5';
 
       $("#R").slider('destroy');
@@ -690,23 +702,23 @@ $(document).on("ready", function () {
       $("#B").slider('destroy');
       $("#A").slider('destroy');
     }
-    if (type_desc == 'dimmer'){
+    if (type_desc == 'dimmer') {
       actuator_current_value = '128';
 
       $("#ex1").slider('destroy');
     }
-    if(type_desc == 'curtain'){
+    if (type_desc == 'curtain') {
       actuator_current_value = '128';
 
       $("#ex2").slider('destroy');
-      
+
     }
   }, false);
 
   closeSendActuation.addEventListener('click', function(event) {
     type_desc = event.target.getAttribute('actuator_desc');
 
-    if(type_desc == 'rgb light' || type_desc == 'RGBw Wall'){
+    if (type_desc == 'rgb light' || type_desc == 'RGBw Wall') {
       actuator_current_value = '128:128:128:0.5';
 
       $("#R").slider('destroy');
@@ -714,16 +726,16 @@ $(document).on("ready", function () {
       $("#B").slider('destroy');
       $("#A").slider('destroy');
     }
-    if (type_desc == 'dimmer'){
+    if (type_desc == 'dimmer') {
       actuator_current_value = '128';
 
       $("#ex1").slider('destroy');
     }
-    if(type_desc == 'curtain'){
+    if (type_desc == 'curtain') {
       actuator_current_value = '128';
 
       $("#ex2").slider('destroy');
-      
+
     }
   }, false);
 
@@ -743,44 +755,56 @@ function startTimer() {
   var timeArray = presentTime.split(/[:]+/);
   var m = timeArray[0];
   var s = checkSecond((timeArray[1] - 1));
-  if(s==59){m=m-1}
-  if(m<0){
+  if (s == 59) {
+    m = m - 1
+  }
+  if (m < 0) {
     sessionStorage.removeItem("authorization");
     document.getElementById('session').style.display = 'none';
     document.getElementById("loginStatus").innerHTML = "Your session has expired. Please sign in again";
     document.getElementById("loginStatus").style.color = "firebrick";
-  }else{
-  
-  document.getElementById('timer').innerHTML =
-    m + ":" + s;
-  setTimeout(startTimer, 1000);
+  } else {
+
+    document.getElementById('timer').innerHTML =
+      m + ":" + s;
+    setTimeout(startTimer, 1000);
   }
 }
 
 function checkSecond(sec) {
-  if (sec < 10 && sec >= 0) {sec = "0" + sec}; // add zero in front of numbers < 10
-  if (sec < 0) {sec = "59"};
+  if (sec < 10 && sec >= 0) {
+    sec = "0" + sec
+  }; // add zero in front of numbers < 10
+  if (sec < 0) {
+    sec = "59"
+  };
   return sec;
 }
 
-function startWebsockets(){
+function startWebsockets() {
   websockets_connection_error = 0;
 
   //{'aamInstanceId': 'SaMMY', 'aamAddress': 'http://sammyacht.com/paam'}, 
   // {'aamInstanceId': 'NXW-symphony-1', 'aamAddress': 'https://symbiote.nextworks.it/paam'}
-  data = [{'aamInstanceId': 'NXW-symphony-1', 'aamAddress': 'https://symbiote.nextworks.it/paam'}, {'aamInstanceId': 'UNIZG-symbiote-1', 'aamAddress': 'https://161.53.19.121/paam'}];
+  data = [{
+    'aamInstanceId': 'NXW-symphony-1',
+    'aamAddress': 'https://symbiote.nextworks.it/paam'
+  }, {
+    'aamInstanceId': 'UNIZG-symbiote-1',
+    'aamAddress': 'https://161.53.19.121/paam'
+  }];
 
-  for (var i = 0; i < data.length; i++){
-      platform_id = data[i].aamInstanceId;
-      platform_url = data[i].aamAddress.split('//')[1].split('/')[0].split(':')[0];
+  for (var i = 0; i < data.length; i++) {
+    platform_id = data[i].aamInstanceId;
+    platform_url = data[i].aamAddress.split('//')[1].split('/')[0].split(':')[0];
 
-      if (!(platform_id in webSockets)){
+    if (!(platform_id in webSockets)) {
 
-        platform_websocket = new WebSocket('ws://' + platform_url + ':8103/notification'); 
-        //+ ':8102/notification');
-        webSockets[platform_id] = platform_websocket;
-      }
-      websocketsON(platform_websocket, platform_id, platform_url);
+      platform_websocket = new WebSocket('ws://' + platform_url + ':8103/notification');
+      //+ ':8102/notification');
+      webSockets[platform_id] = platform_websocket;
+    }
+    websocketsON(platform_websocket, platform_id, platform_url);
   }
 
   // $.ajax({
@@ -812,49 +836,49 @@ function startWebsockets(){
   // });
 }
 
-function subscriptions(subscribe_resource_id, subscribe_resource_platform, resource_platform_websocket, type){
+function subscriptions(subscribe_resource_id, subscribe_resource_platform, resource_platform_websocket, type) {
   var result = 0;
 
-  if(type == 0){ //unsubscribe
+  if (type == 0) { //unsubscribe
     var msg = {
       'action': 'UNSUBSCRIBE',
-      'ids':[subscribe_resource_id]
+      'ids': [subscribe_resource_id]
     };
 
     resource_platform_websocket.send(JSON.stringify(msg));
-      
+
     document.getElementById('subscribeResource').innerHTML = 'Subscribe'
     result = 0;
 
-  }else{ //subscribe
+  } else { //subscribe
 
     var msg = {
       'action': 'SUBSCRIBE',
-      'ids':[subscribe_resource_id]
+      'ids': [subscribe_resource_id]
     };
 
     resource_platform_websocket.send(JSON.stringify(msg));
 
     document.getElementById('subscribeResource').innerHTML = 'Unsubscribe'
     result = 1;
-  
+
   }
   return result;
 }
 
-function websocketsON(websocket, platform_id, platform_url){
+function websocketsON(websocket, platform_id, platform_url) {
 
-  websocket.onopen = function (event) {
+  websocket.onopen = function(event) {
     console.log('Connected to ' + platform_id)
-    //webSocketsErrorCount[platform_id] = 0;
+      //webSocketsErrorCount[platform_id] = 0;
 
-      // var msg = {
-      //   'action': 'SUBSCRIBE',
-      //   'ids':['593126ee25d5cf090c847d54']
-      // };
-      
-      // resource_platform_websocket = webSockets[platform_id];
-      // resource_platform_websocket.send(JSON.stringify(msg));
+    // var msg = {
+    //   'action': 'SUBSCRIBE',
+    //   'ids':['593126ee25d5cf090c847d54']
+    // };
+
+    // resource_platform_websocket = webSockets[platform_id];
+    // resource_platform_websocket.send(JSON.stringify(msg));
 
 
     // setInterval(function(){ 
@@ -862,19 +886,19 @@ function websocketsON(websocket, platform_id, platform_url){
     //   var msg = {
     //     '': ''
     //   };
-      
+
     //   resource_platform_websocket = webSockets[platform_id];
     //   resource_platform_websocket.send(JSON.stringify(msg));
 
     // }, 1000);
   };
 
-  websocket.onclose = function (event){
+  websocket.onclose = function(event) {
     console.log("CLOSE");
 
-    for (var key in webSockets){
+    for (var key in webSockets) {
       //&& webSocketsErrorCount[key] != 10
-      if (webSockets[key] == event.target ){
+      if (webSockets[key] == event.target) {
         // if (!(key in webSocketsErrorCount)){
         //   webSocketsErrorCount[key] = 0;
         // }else
@@ -885,7 +909,7 @@ function websocketsON(websocket, platform_id, platform_url){
     }
   }
 
-  websocket.onerror=function(event){
+  websocket.onerror = function(event) {
     console.log("ERROR websocket");
     // document.getElementById('errorModalTitle').innerHTML = 'Something went wrong, please refresh the page: <p></p>'
     // document.getElementById('errorModalClose').style.display = 'none';
@@ -918,28 +942,28 @@ function websocketsON(websocket, platform_id, platform_url){
 
     notify_data['Resource'] = msg.resourceId;
 
-    if(msg.obsValues[0]){
+    if (msg.obsValues[0]) {
       notify_data['Property'] = msg.obsValues[0].obsProperty.label;
       notify_data['Measurement'] = Number(msg.obsValues[0].value).toFixed(2) + ' ' + msg.obsValues[0].uom.symbol;
     }
 
-    if(msg.location.latitude && msg.location.longitude){
+    if (msg.location.latitude && msg.location.longitude) {
       notify_data['Coordinates'] = msg.location.longitude + ';' + msg.location.latitude;
     }
 
-    if(msg.location.description){
+    if (msg.location.description) {
       notify_data['Location'] = msg.location.description;
     }
 
-    if(msg.samplingTime){
+    if (msg.samplingTime) {
       time = msg.samplingTime.split('T')[1];
       date = msg.samplingTime.split('T')[0];
 
       label += 'at ' + time + ' ' + date + '<p></p>';
     }
 
-    for (var key in notify_data){
-      text += key + ': ' + notify_data[key] +'</br>'
+    for (var key in notify_data) {
+      text += key + ': ' + notify_data[key] + '</br>'
     }
 
     document.getElementById('notificationLabel').innerHTML = label;
@@ -948,207 +972,226 @@ function websocketsON(websocket, platform_id, platform_url){
     $("#notification").show().delay(10000).fadeOut();
   };
 }
-function actuators(e, description, actuator_id, actuator_name, actuator_platform_id){
+
+function actuators(e, description, actuator_id, actuator_name, actuator_platform_id) {
 
   var row_url = symbioteUrl + ":8100/coreInterface/v1/resourceUrls?id=" + actuator_id;
 
   $("#loading").show();
 
-    // Get resource url
+  // Get resource url
   $.ajax({
-        url: row_url,
-        type: "GET",
-        beforeSend: function(xhr){xhr.setRequestHeader('X-Auth-Token', authorization_token);},
-        contentType: "application/json",
-        cache: false,
-        success: function(data){
-          var name = e.target.parentNode.getAttribute('identification');
-          object_url = data[e.target.parentNode.id]
+    url: row_url,
+    type: "GET",
+    beforeSend: function(xhr) {
+      xhr.setRequestHeader('X-Auth-Token', authorization_token);
+    },
+    contentType: "application/json",
+    cache: false,
+    success: function(data) {
+      var name = e.target.parentNode.getAttribute('identification');
+      object_url = data[e.target.parentNode.id]
 
-          if(data.error){
-            document.getElementById('errorModalTitle').innerHTML = 'Something went wrong <p></p>'
-            document.getElementById('errorModalClose').style.display = 'initial';
+      if (data.error) {
+        document.getElementById('errorModalTitle').innerHTML = 'Something went wrong <p></p>'
+        document.getElementById('errorModalClose').style.display = 'initial';
 
-            document.getElementById('errorLabel').innerHTML = 'Your session has expired. Please login and try again.'
-            $('#errorModal').modal('show');
-  
-          }else{
-            click_resource_id = e.target.parentNode.getAttribute('id');
-            click_resource_name = e.target.parentNode.getAttribute('identification');
-            click_resource_platform = e.target.parentNode.getAttribute('platform_id');
+        document.getElementById('errorLabel').innerHTML = 'Your session has expired. Please login and try again.'
+        $('#errorModal').modal('show');
 
-            // Get all platforms tokens
+      } else {
+        click_resource_id = e.target.parentNode.getAttribute('id');
+        click_resource_name = e.target.parentNode.getAttribute('identification');
+        click_resource_platform = e.target.parentNode.getAttribute('platform_id');
+
+        // Get all platforms tokens
+        $.ajax({
+          url: symbioteUrl + ':8100/coreInterface/v1/get_available_aams',
+          type: "GET",
+          contentType: "application/json",
+          cache: false,
+          success: function(data) {
+            //TEMP CODE
+            var address = 'https://' + object_url.split('//')[1].split('/')[0];
+            //TEMP CODE
+
+            for (var i = 0; i < data.length; i++) {
+              if (data[i].aamInstanceId == actuator_platform_id)
+              // get_token_url = data[i].aamAddress + '/request_foreign_token';
+                get_token_url = address + '/paam/request_foreign_token'; //TEMP CODE
+            }
+
+            //Get the token using the returned url by the previous request
             $.ajax({
-                url: symbioteUrl + ':8100/coreInterface/v1/get_available_aams',
-                type: "GET",
-                contentType: "application/json",
-                cache: false,
-                success: function(data){
-                  //TEMP CODE
-                  var address = 'https://' + object_url.split('//')[1].split('/')[0];    
-                  //TEMP CODE
+              url: get_token_url,
+              type: "POST",
+              beforeSend: function(xhr) {
+                xhr.setRequestHeader('X-Auth-Token', authorization_token);
+              },
+              contentType: "application/json",
+              cache: false,
+              success: function(data, status, xhr) {
+                var resource_token = xhr.getResponseHeader("X-Auth-Token");
 
-                  for (var i = 0; i < data.length; i++){
-                    if (data[i].aamInstanceId == actuator_platform_id)
-                      // get_token_url = data[i].aamAddress + '/request_foreign_token';
-                      get_token_url = address + '/paam/request_foreign_token'; //TEMP CODE
-                  }
-
-                  //Get the token using the returned url by the previous request
-                  $.ajax({
-                    url: get_token_url,
-                    type: "POST",
-                    beforeSend: function(xhr){xhr.setRequestHeader('X-Auth-Token', authorization_token);},
-                    contentType: "application/json",
-                    cache: false,
-                    success: function(data, status, xhr){
-                      var resource_token = xhr.getResponseHeader("X-Auth-Token");
-                    
-                      document.getElementById('sendActuation').setAttribute('platform_request', resource_token);
-                      $('#actuatorsModal').modal('show');
-                    },
-                    error:function(error){
-                      $("#loading").hide();
-                      // Error code goes here.
-                      document.getElementById('errorModalTitle').innerHTML = 'Something went wrong <p></p>'
-                      document.getElementById('errorModalClose').style.display = 'initial';
-                      document.getElementById('errorLabel').innerHTML = 'It was not possible to access to this actuator. Please try again later.'
-                      $('#errorModal').modal('show');
-                    }
-                  });
-
-                },
-                error:function(error){
-                  $("#loading").hide();
-                  // Error code goes here.
-                }
+                document.getElementById('sendActuation').setAttribute('platform_request', resource_token);
+                $('#actuatorsModal').modal('show');
+              },
+              error: function(error) {
+                $("#loading").hide();
+                // Error code goes here.
+                document.getElementById('errorModalTitle').innerHTML = 'Something went wrong <p></p>'
+                document.getElementById('errorModalClose').style.display = 'initial';
+                document.getElementById('errorLabel').innerHTML = 'It was not possible to access to this actuator. Please try again later.'
+                $('#errorModal').modal('show');
+              }
             });
-            
+
+          },
+          error: function(error) {
+            $("#loading").hide();
+            // Error code goes here.
           }
-        },
-        error:function(data){
-          //console.log(data)
-          $("#loading").hide();
-          // Error code goes here.
-          document.getElementById('errorLabel').innerHTML = 'It was not possible to access to this actuator. Please try again later.'
-          $('#errorModal').modal('show');
-        }
+        });
+
+      }
+    },
+    error: function(data) {
+      //console.log(data)
+      $("#loading").hide();
+      // Error code goes here.
+      document.getElementById('errorLabel').innerHTML = 'It was not possible to access to this actuator. Please try again later.'
+      $('#errorModal').modal('show');
+    }
+  });
+  document.getElementById('sendActuation').setAttribute('actuator_id', actuator_id);
+  document.getElementById('sendActuation').setAttribute('actuator_desc', description);
+  document.getElementById('closeSendActuation').setAttribute('actuator_desc', description);
+
+  document.getElementById('light_switch').style.display = 'none';
+  document.getElementById('light_dimmer').style.display = 'none';
+  document.getElementById('curtain_slider').style.display = 'none';
+  document.getElementById('light_rgb').style.display = 'none';
+  document.getElementById('actuator_explanation').innerHTML = '';
+
+
+  if (description == 1) {
+    document.getElementById('actuator_explanation').innerHTML = 'This actuator contains a light that can be turned on/off. <p></p>Use the switch to turn on/off the light of this actuator and the press "Actuate" to send the action.';
+    document.getElementById('light_switch').style.display = 'block';
+
+    // switch button
+    $("[name='my-checkbox']").bootstrapSwitch();
+
+    $('input[name="my-checkbox"]').on('switchChange.bootstrapSwitch', function(event, state) {
+      // console.log(state); // true | false
+      actuator_current_value = state;
     });
-    document.getElementById('sendActuation').setAttribute('actuator_id', actuator_id);
-    document.getElementById('sendActuation').setAttribute('actuator_desc', description);
-    document.getElementById('closeSendActuation').setAttribute('actuator_desc', description);
+  }
 
-    document.getElementById('light_switch').style.display = 'none';
-    document.getElementById('light_dimmer').style.display = 'none';
-    document.getElementById('curtain_slider').style.display = 'none';
-    document.getElementById('light_rgb').style.display = 'none';
-    document.getElementById('actuator_explanation').innerHTML = '';
+  if (description == 'dimmer') {
+    actuator_current_value = '50';
 
+    document.getElementById('actuator_explanation').innerHTML = 'This actuator contains a light whose intesity can by controlled. <p></p>Use the bar to control the light intensity of this actuator and the press "Actuate" to send the action.';
+    document.getElementById('light_dimmer').style.display = 'initial';
 
-    if(description == 1){
-      document.getElementById('actuator_explanation').innerHTML = 'This actuator contains a light that can be turned on/off. <p></p>Use the switch to turn on/off the light of this actuator and the press "Actuate" to send the action.';
-      document.getElementById('light_switch').style.display = 'block';
+    //sliders
+    $('#ex1').slider({
+      formatter: function(value) {
+        actuator_current_value = value;
+        return 'Current value: ' + value;
+      }
+    });
+  }
 
-      // switch button
-      $("[name='my-checkbox']").bootstrapSwitch();
+  if (description == 'curtain') {
+    actuator_current_value = '50';
 
-      $('input[name="my-checkbox"]').on('switchChange.bootstrapSwitch', function(event, state) {
-        // console.log(state); // true | false
-        actuator_current_value = state;
-      });
-    }
+    document.getElementById('actuator_explanation').innerHTML = 'This actuator contains a curtain whose position can be controlled. <p></p>Use the bar to control the curtain position of this actuator and the press "Actuate" to send the action.';
+    document.getElementById('curtain_slider').style.display = 'initial';
 
-    if(description == 'dimmer'){
-      actuator_current_value = '50';
+    $('#ex2').slider({
+      formatter: function(value) {
+        actuator_current_value = value;
+        return 'Current value: ' + value;
+      }
+    });
+  }
 
-      document.getElementById('actuator_explanation').innerHTML = 'This actuator contains a light whose intesity can by controlled. <p></p>Use the bar to control the light intensity of this actuator and the press "Actuate" to send the action.';
-      document.getElementById('light_dimmer').style.display = 'initial';
+  if (description == 'rgb light' || description == 'RGBw Wall') {
+    actuator_current_value = '128:128:128:0.5';
 
-      //sliders
-      $('#ex1').slider({
-        formatter: function(value) {
-          actuator_current_value = value;
-          return 'Current value: ' + value;
-        }
-      });
-    }
+    document.getElementById('actuator_explanation').innerHTML = 'This actuator contains a RGB light whose color can be changed. <p></p>Use the bar to change the light color of this actuator and the press "Actuate" to send the action.';
+    document.getElementById('light_rgb').style.display = 'initial';
 
-    if(description == 'curtain'){
-      actuator_current_value = '50';
+    // rgb sliders
+    var RGBChange = function() {
+      $('#RGB').css('background', 'rgba(' + r.getValue() + ',' + g.getValue() + ',' + b.getValue() + ',' + a.getValue() + ')')
+      actuator_current_value = r.getValue() + ':' + g.getValue() + ':' + b.getValue() + ':' + a.getValue();
+      //console.log('rgb('+r.getValue()+','+g.getValue()+','+b.getValue()+','+a.getValue()+ ')');
+    };
 
-      document.getElementById('actuator_explanation').innerHTML = 'This actuator contains a curtain whose position can be controlled. <p></p>Use the bar to control the curtain position of this actuator and the press "Actuate" to send the action.';
-      document.getElementById('curtain_slider').style.display = 'initial';
-
-      $('#ex2').slider({
-        formatter: function(value) {
-          actuator_current_value = value;
-          return 'Current value: ' + value;
-        }
-      });
-    }
-    
-    if (description == 'rgb light' || description == 'RGBw Wall'){
-      actuator_current_value = '128:128:128:0.5';
-
-      document.getElementById('actuator_explanation').innerHTML = 'This actuator contains a RGB light whose color can be changed. <p></p>Use the bar to change the light color of this actuator and the press "Actuate" to send the action.';
-      document.getElementById('light_rgb').style.display = 'initial';
-
-      // rgb sliders
-      var RGBChange = function() {
-        $('#RGB').css('background', 'rgba('+r.getValue()+','+g.getValue()+','+b.getValue()+','+a.getValue()+ ')')
-          actuator_current_value = r.getValue()+':'+g.getValue()+':'+b.getValue()+':'+a.getValue();
-          //console.log('rgb('+r.getValue()+','+g.getValue()+','+b.getValue()+','+a.getValue()+ ')');
-      };
-
-      r = $('#R').slider()
-          .on('slide', RGBChange)
-          .data('slider');
-      g = $('#G').slider()
-          .on('slide', RGBChange)
-          .data('slider');
-      b = $('#B').slider()
-          .on('slide', RGBChange)
-          .data('slider');
-      a = $('#A').slider()
-          .on('slide', RGBChange)
-          .data('slider')
-    }
+    r = $('#R').slider()
+      .on('slide', RGBChange)
+      .data('slider');
+    g = $('#G').slider()
+      .on('slide', RGBChange)
+      .data('slider');
+    b = $('#B').slider()
+      .on('slide', RGBChange)
+      .data('slider');
+    a = $('#A').slider()
+      .on('slide', RGBChange)
+      .data('slider')
+  }
 }
 
-function sendActuation(actuator_id, type, event){
+function sendActuation(actuator_id, type, event) {
 
-  if (type == 'rgb light' || type == 'RGBw Wall'){
+  if (type == 'rgb light' || type == 'RGBw Wall') {
     r_value = actuator_current_value.split(':')[0];
     g_value = actuator_current_value.split(':')[1];
     b_value = actuator_current_value.split(':')[2];
     a_value = actuator_current_value.split(':')[3];
 
-    act_data ={
-            "inputParameters": [
-                {"name": "luminousEfficacy", "value": Math.floor((r_value*100)/255).toString()},
-                {"name": "luminousExposure", "value": Math.floor((g_value*100)/255).toString()},
-                {"name": "luminousFlux", "value": Math.floor((b_value*100)/255).toString()},
-                {"name": "luminousIntensity", "value": Math.floor(a_value*100).toString()}
-              ]
-            }
-    
-  }else{
-   act_data = {"inputParameters": [{"name": "quantityOfLight", "value": actuator_current_value.toString()}]};
+    act_data = {
+      "inputParameters": [{
+        "name": "luminousEfficacy",
+        "value": Math.floor((r_value * 100) / 255).toString()
+      }, {
+        "name": "luminousExposure",
+        "value": Math.floor((g_value * 100) / 255).toString()
+      }, {
+        "name": "luminousFlux",
+        "value": Math.floor((b_value * 100) / 255).toString()
+      }, {
+        "name": "luminousIntensity",
+        "value": Math.floor(a_value * 100).toString()
+      }]
+    }
+
+  } else {
+    act_data = {
+      "inputParameters": [{
+        "name": "quantityOfLight",
+        "value": actuator_current_value.toString()
+      }]
+    };
   }
 
   var auth_token = (event.target.getAttribute('platform_request'));
   $.ajax({
-    url: "https://symbiote.nextworks.it:8102/rap/ActuatingServices('" + actuator_id +  "')",
-    beforeSend: function(xhr){xhr.setRequestHeader('X-Auth-Token', auth_token);},
+    url: "https://symbiote.nextworks.it:8102/rap/ActuatingServices('" + actuator_id + "')",
+    beforeSend: function(xhr) {
+      xhr.setRequestHeader('X-Auth-Token', auth_token);
+    },
     data: JSON.stringify(act_data),
     type: "PUT",
     contentType: "application/json",
     dataType: "application/json",
     cache: false,
-    success: function(res, status, xhr) { 
+    success: function(res, status, xhr) {
 
     },
-    error:function(error){
+    error: function(error) {
       // TODO add error message
 
     }
@@ -1157,177 +1200,177 @@ function sendActuation(actuator_id, type, event){
   $('#actuatorsModal').modal('hide');
 }
 
-function sensors(e, authorization_token){
-    var table = document.getElementById("historicTable");
+function sensors(e, authorization_token) {
+  var table = document.getElementById("historicTable");
 
-    var table = $('#historicTable').DataTable();
-    var rows = table.rows().remove().draw();
+  var table = $('#historicTable').DataTable();
+  var rows = table.rows().remove().draw();
 
-    //var row_url = symbioteUrl + ":8100/coreInterface/v1/resourceUrls?id=" + e.target.parentNode.id
+  //var row_url = symbioteUrl + ":8100/coreInterface/v1/resourceUrls?id=" + e.target.parentNode.id
 
-    var row_url = symbioteClientUrl + "/get_resource_url/";
+  var row_url = symbioteClientUrl + "/get_resource_url/";
 
-    var platform_id = e.target.parentNode.getAttribute('platform_id');
+  var platform_id = e.target.parentNode.getAttribute('platform_id');
 
-    var form = new FormData();
-    form.append("resourceId", e.target.parentNode.id);
-    form.append("platformId", platform_id);
+  var form = new FormData();
+  form.append("resourceId", e.target.parentNode.id);
+  form.append("platformId", platform_id);
 
-    $("#loading").show();
+  $("#loading").show();
 
-    // Get resource url
-    $.ajax({
-          url: row_url,
+  // Get resource url
+  $.ajax({
+    url: row_url,
+    type: "POST",
+    // beforeSend: function(xhr){
+    //   xhr.setRequestHeader('X-Auth-Token', authorization_token);
+    // },
+    contentType: "application/json",
+    cache: false,
+    data: form,
+    processData: false,
+    contentType: false,
+    success: function(data) {
+      var device_url = data.body[e.target.parentNode.id];
+      //device_url = device_url + "/Observations&platformId=" + platform_id;
+      device_url = device_url + "/Observations";
+      console.log(device_url);
+
+      var name = e.target.parentNode.getAttribute('identification');
+
+      if (data.error) {
+        document.getElementById('errorModalTitle').innerHTML = 'Something went wrong <p></p>'
+        document.getElementById('errorModalClose').style.display = 'initial';
+
+        document.getElementById('errorLabel').innerHTML = 'Your session has expired. Please login and try again.'
+        $('#errorModal').modal('show');
+
+      } else {
+        click_resource_id = e.target.parentNode.getAttribute('id');
+        click_resource_name = e.target.parentNode.getAttribute('identification');
+        click_resource_platform = e.target.parentNode.getAttribute('platform_id');
+
+        var form = new FormData();
+        form.append("resourceUrl", device_url);
+        form.append("platformId", platform_id);
+
+        // Get the historical data for the clicked resource (using url returned by the firs request and the specific token for the pretended platform that the resource belogns)
+        $.ajax({
+          url: symbioteClientUrl + "/observations_with_home_token?resourceUrl=" + device_url + "&platformId=" + platform_id,
           type: "POST",
-          // beforeSend: function(xhr){
-          //   xhr.setRequestHeader('X-Auth-Token', authorization_token);
-          // },
           contentType: "application/json",
           cache: false,
-          data: form,
           processData: false,
           contentType: false,
-          success: function(data){
-            var device_url = data.body[e.target.parentNode.id];
-            //device_url = device_url + "/Observations&platformId=" + platform_id;
-            device_url = device_url + "/Observations";
-            console.log(device_url);
+          success: function(data) {
 
-            var name = e.target.parentNode.getAttribute('identification');
+            if (subscribedResources.indexOf(click_resource_id) != -1)
+              document.getElementById('subscribeResource').innerHTML = "Unsubscribe";
+            else
+              document.getElementById('subscribeResource').innerHTML = "Subscribe";
 
-            if(data.error){
-              document.getElementById('errorModalTitle').innerHTML = 'Something went wrong <p></p>'
-              document.getElementById('errorModalClose').style.display = 'initial';
+            document.getElementById('subscribeResource').setAttribute('resource_id', click_resource_id);
+            document.getElementById('subscribeResource').setAttribute('resource_name', click_resource_name);
+            document.getElementById('subscribeResource').setAttribute('resource_platform', click_resource_platform);
 
-              document.getElementById('errorLabel').innerHTML = 'Your session has expired. Please login and try again.'
-              $('#errorModal').modal('show');
-   
-            }else{
-              click_resource_id = e.target.parentNode.getAttribute('id');
-              click_resource_name = e.target.parentNode.getAttribute('identification');
-              click_resource_platform = e.target.parentNode.getAttribute('platform_id');
 
-              var form = new FormData();
-              form.append("resourceUrl", device_url);  
-              form.append("platformId", platform_id);
-
-              // Get the historical data for the clicked resource (using url returned by the firs request and the specific token for the pretended platform that the resource belogns)
-              $.ajax({
-                url: symbioteClientUrl + "/observations_with_home_token?resourceUrl=" + device_url + "&platformId=" + platform_id,
-                type: "POST",
-                contentType: "application/json",
-                cache: false,
-                processData: false,
-                contentType: false,
-                success: function(data){
-    
-                  if (subscribedResources.indexOf(click_resource_id) != -1)
-                    document.getElementById('subscribeResource').innerHTML = "Unsubscribe";
-                  else
-                    document.getElementById('subscribeResource').innerHTML = "Subscribe";
-
-                  document.getElementById('subscribeResource').setAttribute('resource_id', click_resource_id);
-                  document.getElementById('subscribeResource').setAttribute('resource_name', click_resource_name);
-                  document.getElementById('subscribeResource').setAttribute('resource_platform', click_resource_platform);
-                  
-
-                  for (var key in webSockets){
-                    if (key == click_resource_platform){
-                      document.getElementById('subscribeResource').style.display = 'inline';
-                      break;
-                    }
-                  }
-                  
-                  graphDict = {}
-                  $("#selectBox").empty();
-
-                  for (var i = 0; i < data.length; i ++){
-                    if (data[i]['location'])
-                      var latitude = data[i]['location']['latitude']
-                    else
-                      var latitude = "NA"
-                    
-                    if (data[i]['location'])
-                      var longitude = data[i]['location']['longitude']
-                    else
-                      var longitude = "NA"
-                    
-                    if (data[i]['obsValues'][0]['obsProperty'])
-                      if (data[i]['obsValues'][0]['obsProperty']['label'])
-                        var observedProperty = data[i]['obsValues'][0]['obsProperty']['label']
-                      else if (data[i]['obsValues'][0]['obsProperty']['name'])
-                        var observedProperty = data[i]['obsValues'][0]['obsProperty']['name']
-                      else
-                        var observedProperty = "NA"
-                    else
-                      var observedProperty = "NA"
-                    
-                    if (data[i]['obsValues'][0]['uom'])
-                      if (data[i]['obsValues'][0]['uom']['symbol'])
-                        var unit = data[i]['obsValues'][0]['uom']['symbol']
-                      else
-                        var unit = "NA"
-                    else
-                      var unit = "NA"
-
-                    if (data[i]['obsValues'][0]['value'])
-                      var measurementValue = data[i]['obsValues'][0]['value']
-                    else
-                      var measurementValue = "NA"
-                    
-                    if (data[i]['samplingTime'])
-                      var samplingTime = data[i]['samplingTime']
-                    else 
-                      var samplingTime = "NA"
-
-                    if (observedProperty in graphDict){
-                        graphDict[observedProperty].push([measurementValue, samplingTime]);
-                    }
-
-                    else{
-                      graphDict[observedProperty] = []
-                      graphDict[observedProperty].push([measurementValue, samplingTime]);
-                      $("#selectBox").append('<option value="' + observedProperty + '">' + observedProperty + '</option>');}
-
-                    //console.log(graphDict);
-
-                    if(samplingTime != "NA")
-                      observationTime = samplingTime.split('T')[0] + ', ' + samplingTime.split('T')[1].split('Z')[0].split('.')[0];
-                    else
-                      observationTime = "NA";
-
-                    var table = $('#historicTable').DataTable();
-                    var row = table
-                    .row.add( [measurementValue, observedProperty, unit, latitude, longitude, observationTime] )
-                    .draw()
-                    .node();
-
-                  }
-
-                  $('#infoSensorModal').modal('show');
-                  $('#infoSensorModalTitle').text(name  + " data")
-                  $("#loading").hide();
-
-                },
-                error:function(){
-                  $("#loading").hide();
-                  // Error code goes here.
-                  document.getElementById('errorModalTitle').innerHTML = 'Something went wrong <p></p>'
-                  document.getElementById('errorModalClose').style.display = 'initial';
-
-                  document.getElementById('errorLabel').innerHTML = 'It was not possible to get resource historical data. Please try again.'
-                  $('#errorModal').modal('show');
-                }
-            });
-              
+            for (var key in webSockets) {
+              if (key == click_resource_platform) {
+                document.getElementById('subscribeResource').style.display = 'inline';
+                break;
+              }
             }
+
+            graphDict = {}
+            $("#selectBox").empty();
+
+            for (var i = 0; i < data.length; i++) {
+              if (data[i]['location'])
+                var latitude = data[i]['location']['latitude']
+              else
+                var latitude = "NA"
+
+              if (data[i]['location'])
+                var longitude = data[i]['location']['longitude']
+              else
+                var longitude = "NA"
+
+              if (data[i]['samplingTime'])
+                var samplingTime = data[i]['samplingTime']
+              else
+                var samplingTime = "NA"
+
+              for (var ov = 0; ov < data[i]['obsValues'].length; ov++) {
+                if (data[i]['obsValues'][ov]['obsProperty'])
+                  if (data[i]['obsValues'][ov]['obsProperty']['label'])
+                    var observedProperty = data[i]['obsValues'][ov]['obsProperty']['label']
+                  else if (data[i]['obsValues'][ov]['obsProperty']['name'])
+                  var observedProperty = data[i]['obsValues'][ov]['obsProperty']['name']
+                else
+                  var observedProperty = "NA"
+                else
+                  var observedProperty = "NA"
+
+                if (data[i]['obsValues'][ov]['uom'])
+                  if (data[i]['obsValues'][ov]['uom']['symbol'])
+                    var unit = data[i]['obsValues'][ov]['uom']['symbol']
+                  else
+                    var unit = "NA"
+                else
+                  var unit = "NA"
+
+                if (data[i]['obsValues'][ov]['value'])
+                  var measurementValue = data[i]['obsValues'][ov]['value']
+                else
+                  var measurementValue = "NA"
+
+                if (observedProperty in graphDict) {
+                  graphDict[observedProperty].push([measurementValue, samplingTime]);
+                } else {
+                  graphDict[observedProperty] = []
+                  graphDict[observedProperty].push([measurementValue, samplingTime]);
+                  $("#selectBox").append('<option value="' + observedProperty + '">' + observedProperty + '</option>');
+                }
+
+                //console.log(graphDict);
+
+                if (samplingTime != "NA")
+                  observationTime = samplingTime.split('T')[0] + ', ' + samplingTime.split('T')[1].split('Z')[0].split('.')[0];
+                else
+                  observationTime = "NA";
+
+                var table = $('#historicTable').DataTable();
+                var row = table
+                  .row.add([measurementValue, observedProperty, unit, latitude, longitude, observationTime])
+                  .draw()
+                  .node();
+              }
+            }
+
+            $('#infoSensorModal').modal('show');
+            $('#infoSensorModalTitle').text(name + " data")
+            $("#loading").hide();
+
           },
-          error:function(data){
-            //console.log(data)
+          error: function() {
             $("#loading").hide();
             // Error code goes here.
+            document.getElementById('errorModalTitle').innerHTML = 'Something went wrong <p></p>'
+            document.getElementById('errorModalClose').style.display = 'initial';
+
             document.getElementById('errorLabel').innerHTML = 'It was not possible to get resource historical data. Please try again.'
             $('#errorModal').modal('show');
           }
-      });
+        });
+
+      }
+    },
+    error: function(data) {
+      //console.log(data)
+      $("#loading").hide();
+      // Error code goes here.
+      document.getElementById('errorLabel').innerHTML = 'It was not possible to get resource historical data. Please try again.'
+      $('#errorModal').modal('show');
+    }
+  });
 }
