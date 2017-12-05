@@ -170,17 +170,17 @@ function handleClickRow(e) {
   description = e.target.parentNode.getAttribute('description');
   type = e.target.parentNode.getAttribute('type');
 
-  //if (type == 'ActuatingService'){
-  // console.log("actuator")
-  //  actuator_id = e.target.parentNode.getAttribute('id');
-  //  actuator_name = e.target.parentNode.getAttribute('identification');
-  //  actuator_platform_id = e.target.parentNode.getAttribute('platform_id');
+  if (type == 'Actuator'){
+  console.log("actuator")
+   actuator_id = e.target.parentNode.getAttribute('id');
+   actuator_name = e.target.parentNode.getAttribute('identification');
+   actuator_platform_id = e.target.parentNode.getAttribute('platform_id');
 
-  //  actuators(e, description, actuator_id, actuator_name, actuator_platform_id);
-  //}
-  //if (type == 'StationarySensor')
-  sensors(e, authorization_token);
-  //}
+  actuators(e, description, actuator_id, actuator_name, actuator_platform_id);
+  }
+  if (type == 'StationarySensor'){
+    sensors(e, authorization_token);
+  }
 }
 
 // Remove data (sensors) from previous search
@@ -975,20 +975,37 @@ function websocketsON(websocket, platform_id, platform_url) {
 
 function actuators(e, description, actuator_id, actuator_name, actuator_platform_id) {
 
-  var row_url = symbioteUrl + ":8100/coreInterface/v1/resourceUrls?id=" + actuator_id;
+  // var row_url = symbioteUrl + ":8100/coreInterface/v1/resourceUrls?id=" + actuator_id;
+  var row_url = symbioteClientUrl + "/get_resource_url/";
+
+  var platform_id = e.target.parentNode.getAttribute('platform_id');
+  
+  var form = new FormData();
+  form.append("resourceId", e.target.parentNode.id);
+  form.append("platformId", platform_id);
+
+  console.log("--------")
+  console.log(e.target.parentNode.id);
+  console.log(platform_id);
+  console.log("--------")
+
 
   $("#loading").show();
 
   // Get resource url
   $.ajax({
     url: row_url,
-    type: "GET",
-    beforeSend: function(xhr) {
-      xhr.setRequestHeader('X-Auth-Token', authorization_token);
-    },
+    type: "POST",
+    // beforeSend: function(xhr) {
+    //   xhr.setRequestHeader('X-Auth-Token', authorization_token);
+    // },
     contentType: "application/json",
     cache: false,
+    data: form,
+    processData: false,
+    contentType: false,
     success: function(data) {
+
       var name = e.target.parentNode.getAttribute('identification');
       object_url = data[e.target.parentNode.id]
 
@@ -1004,58 +1021,62 @@ function actuators(e, description, actuator_id, actuator_name, actuator_platform
         click_resource_name = e.target.parentNode.getAttribute('identification');
         click_resource_platform = e.target.parentNode.getAttribute('platform_id');
 
+        // document.getElementById('sendActuation').setAttribute('platform_request', resource_token);
+        $('#actuatorsModal').modal('show');
+
         // Get all platforms tokens
-        $.ajax({
-          url: symbioteUrl + ':8100/coreInterface/v1/get_available_aams',
-          type: "GET",
-          contentType: "application/json",
-          cache: false,
-          success: function(data) {
-            //TEMP CODE
-            var address = 'https://' + object_url.split('//')[1].split('/')[0];
-            //TEMP CODE
+        // $.ajax({
+        //   url: symbioteUrl + ':8100/coreInterface/v1/get_available_aams',
+        //   type: "GET",
+        //   contentType: "application/json",
+        //   cache: false,
+        //   success: function(data) {
+        //     //TEMP CODE
+        //     var address = 'https://' + object_url.split('//')[1].split('/')[0];
+        //     //TEMP CODE
 
-            for (var i = 0; i < data.length; i++) {
-              if (data[i].aamInstanceId == actuator_platform_id)
-              // get_token_url = data[i].aamAddress + '/request_foreign_token';
-                get_token_url = address + '/paam/request_foreign_token'; //TEMP CODE
-            }
+        //     for (var i = 0; i < data.length; i++) {
+        //       if (data[i].aamInstanceId == actuator_platform_id)
+        //       // get_token_url = data[i].aamAddress + '/request_foreign_token';
+        //         get_token_url = address + '/paam/request_foreign_token'; //TEMP CODE
+        //     }
 
-            //Get the token using the returned url by the previous request
-            $.ajax({
-              url: get_token_url,
-              type: "POST",
-              beforeSend: function(xhr) {
-                xhr.setRequestHeader('X-Auth-Token', authorization_token);
-              },
-              contentType: "application/json",
-              cache: false,
-              success: function(data, status, xhr) {
-                var resource_token = xhr.getResponseHeader("X-Auth-Token");
+        //     //Get the token using the returned url by the previous request
+        //     $.ajax({
+        //       url: get_token_url,
+        //       type: "POST",
+        //       beforeSend: function(xhr) {
+        //         xhr.setRequestHeader('X-Auth-Token', authorization_token);
+        //       },
+        //       contentType: "application/json",
+        //       cache: false,
+        //       success: function(data, status, xhr) {
+        //         var resource_token = xhr.getResponseHeader("X-Auth-Token");
 
-                document.getElementById('sendActuation').setAttribute('platform_request', resource_token);
-                $('#actuatorsModal').modal('show');
-              },
-              error: function(error) {
-                $("#loading").hide();
-                // Error code goes here.
-                document.getElementById('errorModalTitle').innerHTML = 'Something went wrong <p></p>'
-                document.getElementById('errorModalClose').style.display = 'initial';
-                document.getElementById('errorLabel').innerHTML = 'It was not possible to access to this actuator. Please try again later.'
-                $('#errorModal').modal('show');
-              }
-            });
+        //         document.getElementById('sendActuation').setAttribute('platform_request', resource_token);
+        //         $('#actuatorsModal').modal('show');
+        //       },
+        //       error: function(error) {
+        //         $("#loading").hide();
+        //         // Error code goes here.
+        //         document.getElementById('errorModalTitle').innerHTML = 'Something went wrong <p></p>'
+        //         document.getElementById('errorModalClose').style.display = 'initial';
+        //         document.getElementById('errorLabel').innerHTML = 'It was not possible to access to this actuator. Please try again later.'
+        //         $('#errorModal').modal('show');
+        //       }
+        //     });
 
-          },
-          error: function(error) {
-            $("#loading").hide();
-            // Error code goes here.
-          }
-        });
+        //   },
+        //   error: function(error) {
+        //     $("#loading").hide();
+        //     // Error code goes here.
+        //   }
+        // });
 
       }
     },
     error: function(data) {
+ 
       //console.log(data)
       $("#loading").hide();
       // Error code goes here.
@@ -1177,12 +1198,12 @@ function sendActuation(actuator_id, type, event) {
     };
   }
 
-  var auth_token = (event.target.getAttribute('platform_request'));
+  // var auth_token = (event.target.getAttribute('platform_request'));
   $.ajax({
     url: "https://symbiote.nextworks.it:8102/rap/ActuatingServices('" + actuator_id + "')",
-    beforeSend: function(xhr) {
-      xhr.setRequestHeader('X-Auth-Token', auth_token);
-    },
+    // beforeSend: function(xhr) {
+    //   xhr.setRequestHeader('X-Auth-Token', auth_token);
+    // },
     data: JSON.stringify(act_data),
     type: "PUT",
     contentType: "application/json",
