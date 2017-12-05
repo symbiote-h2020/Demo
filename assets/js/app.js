@@ -691,8 +691,10 @@ $(document).on("ready", function() {
   actuateButton.addEventListener('click', function(event) {
     actuator_id = event.target.getAttribute('actuator_id');
     type_desc = event.target.getAttribute('actuator_desc');
+    url = event.target.getAttribute('url')
+    platform_id = event.target.getAttribute('platform_id')
 
-    sendActuation(actuator_id, type_desc, event);
+    sendActuation(actuator_id, type_desc, event, url, platform_id);
 
     if (type_desc == 'rgb light' || type_desc == 'RGBw Wall') {
       actuator_current_value = '128:128:128:0.5';
@@ -984,12 +986,6 @@ function actuators(e, description, actuator_id, actuator_name, actuator_platform
   form.append("resourceId", e.target.parentNode.id);
   form.append("platformId", platform_id);
 
-  console.log("--------")
-  console.log(e.target.parentNode.id);
-  console.log(platform_id);
-  console.log("--------")
-
-
   $("#loading").show();
 
   // Get resource url
@@ -1086,6 +1082,9 @@ function actuators(e, description, actuator_id, actuator_name, actuator_platform
   });
   document.getElementById('sendActuation').setAttribute('actuator_id', actuator_id);
   document.getElementById('sendActuation').setAttribute('actuator_desc', description);
+  document.getElementById('sendActuation').setAttribute('platform_id', platform_id);
+  document.getElementById('sendActuation').setAttribute('url', symbioteClientUrl);
+
   document.getElementById('closeSendActuation').setAttribute('actuator_desc', description);
 
   document.getElementById('light_switch').style.display = 'none';
@@ -1165,7 +1164,7 @@ function actuators(e, description, actuator_id, actuator_name, actuator_platform
   }
 }
 
-function sendActuation(actuator_id, type, event) {
+function sendActuation(actuator_id, type, event, url, platform_id) {
 
   if (type == 'rgb light' || type == 'RGBw Wall') {
     r_value = actuator_current_value.split(':')[0];
@@ -1174,36 +1173,32 @@ function sendActuation(actuator_id, type, event) {
     a_value = actuator_current_value.split(':')[3];
 
     act_data = {
-      "inputParameters": [{
-        "name": "luminousEfficacy",
-        "value": Math.floor((r_value * 100) / 255).toString()
-      }, {
-        "name": "luminousExposure",
-        "value": Math.floor((g_value * 100) / 255).toString()
-      }, {
-        "name": "luminousFlux",
-        "value": Math.floor((b_value * 100) / 255).toString()
-      }, {
-        "name": "luminousIntensity",
-        "value": Math.floor(a_value * 100).toString()
-      }]
+      'r': Math.floor((r_value * 100) / 255).toString(),
+      'g': Math.floor((g_value * 100) / 255).toString(),
+      'b': Math.floor((b_value * 100) / 255).toString(),
+      'a': Math.floor(a_value * 100).toString()
     }
 
-  } else {
+    final_url = url + "/set?resourceUrl=https://symbiote.nextworks.it/rap/Curtains('" + actuator_id + "')&platformId=" + platform_id;
+
+  } else if (type == 'dimmer') { // Dimmer 
+
     act_data = {
-      "inputParameters": [{
-        "name": "quantityOfLight",
-        "value": actuator_current_value.toString()
-      }]
-    };
+      'level': actuator_current_value
+    }
+
+   final_url = url + "/set?resourceUrl=https://symbiote.nextworks.it/rap/Lights('" + actuator_id + "')&platformId=" + platform_id;
+
+  } else { //Curtain
+    act_data = {
+      'position': actuator_current_value
+    }
+
+    final_url = url + "/set?resourceUrl=https://symbiote.nextworks.it/rap/Lights('" + actuator_id + "')&platformId=" + platform_id;
   }
 
-  // var auth_token = (event.target.getAttribute('platform_request'));
   $.ajax({
-    url: "https://symbiote.nextworks.it:8102/rap/ActuatingServices('" + actuator_id + "')",
-    // beforeSend: function(xhr) {
-    //   xhr.setRequestHeader('X-Auth-Token', auth_token);
-    // },
+    url: final_url,
     data: JSON.stringify(act_data),
     type: "PUT",
     contentType: "application/json",
@@ -1214,7 +1209,6 @@ function sendActuation(actuator_id, type, event) {
     },
     error: function(error) {
       // TODO add error message
-
     }
   });
 
