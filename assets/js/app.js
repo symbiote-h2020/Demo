@@ -1178,7 +1178,8 @@ function sendActuation(actuator_id, type, event, url, platform_id) {
       'b': Math.floor((b_value * 100) / 255).toString(),
       'a': Math.floor(a_value * 100).toString()
     }
-
+    
+    var act_body = {'RGBCapabilitys': [act_data]};
     final_url = url + "/set?resourceUrl=https://symbiote.nextworks.it/rap/Lights('" + actuator_id + "')&platformId=" + platform_id;
 
   } else if (type == 'dimmer') { // Dimmer 
@@ -1186,6 +1187,7 @@ function sendActuation(actuator_id, type, event, url, platform_id) {
     act_data = {
       'level': actuator_current_value
     }
+    var act_body = {'DimmerCapabilitys': [act_data]};
 
    final_url = url + "/set?resourceUrl=https://symbiote.nextworks.it/rap/Lights('" + actuator_id + "')&platformId=" + platform_id;
 
