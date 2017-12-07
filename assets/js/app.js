@@ -1179,7 +1179,7 @@ function sendActuation(actuator_id, type, event, url, platform_id) {
       'a': Math.floor(a_value * 100).toString()
     }
 
-    final_url = url + "/set?resourceUrl=https://symbiote.nextworks.it/rap/Curtains('" + actuator_id + "')&platformId=" + platform_id;
+    final_url = url + "/set?resourceUrl=https://symbiote.nextworks.it/rap/Lights('" + actuator_id + "')&platformId=" + platform_id;
 
   } else if (type == 'dimmer') { // Dimmer 
 
@@ -1193,14 +1193,16 @@ function sendActuation(actuator_id, type, event, url, platform_id) {
     act_data = {
       'position': actuator_current_value
     }
+    var act_body = {'SetPositionCapabilitys': [act_data]};
 
-    final_url = url + "/set?resourceUrl=https://symbiote.nextworks.it/rap/Lights('" + actuator_id + "')&platformId=" + platform_id;
+    final_url = url + "/set?resourceUrl=https://symbiote.nextworks.it/rap/Curtains('" + actuator_id + "')&platformId=" + platform_id;
   }
-
+  console.log(final_url);
+  console.log(JSON.stringify(act_body));
   $.ajax({
     url: final_url,
-    data: JSON.stringify(act_data),
-    type: "PUT",
+    data: JSON.stringify(act_body),
+    type: "POST",
     contentType: "application/json",
     dataType: "application/json",
     cache: false,
