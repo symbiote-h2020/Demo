@@ -1144,8 +1144,8 @@ function actuators(e, description, actuator_id, actuator_name, actuator_platform
 
     // rgb sliders
     var RGBChange = function() {
-      $('#RGB').css('background', 'rgba(' + r.getValue() + ',' + g.getValue() + ',' + b.getValue() + ',' + a.getValue() + ')')
-      actuator_current_value = r.getValue() + ':' + g.getValue() + ':' + b.getValue() + ':' + a.getValue();
+      $('#RGB').css('background', 'rgb(' + r.getValue() + ',' + g.getValue() + ',' + b.getValue() + ')')
+      actuator_current_value = r.getValue() + ':' + g.getValue() + ':' + b.getValue();
       //console.log('rgb('+r.getValue()+','+g.getValue()+','+b.getValue()+','+a.getValue()+ ')');
     };
 
@@ -1158,9 +1158,9 @@ function actuators(e, description, actuator_id, actuator_name, actuator_platform
     b = $('#B').slider()
       .on('slide', RGBChange)
       .data('slider');
-    a = $('#A').slider()
+    /*a = $('#A').slider()
       .on('slide', RGBChange)
-      .data('slider')
+      .data('slider')*/
   }
 }
 
@@ -1170,15 +1170,15 @@ function sendActuation(actuator_id, type, event, url, platform_id) {
     r_value = actuator_current_value.split(':')[0];
     g_value = actuator_current_value.split(':')[1];
     b_value = actuator_current_value.split(':')[2];
-    a_value = actuator_current_value.split(':')[3];
+    //a_value = actuator_current_value.split(':')[3];
 
     act_data = {
-      'r': Math.floor((r_value * 100) / 255).toString(),
-      'g': Math.floor((g_value * 100) / 255).toString(),
-      'b': Math.floor((b_value * 100) / 255).toString(),
-      'a': Math.floor(a_value * 100).toString()
+      'r': Math.floor((r_value * 100) / 255),
+      'g': Math.floor((g_value * 100) / 255),
+      'b': Math.floor((b_value * 100) / 255)//,
+      //'a': Math.floor(a_value * 100).toString()
     }
-    
+
     var act_body = {'RGBCapabilitys': [act_data]};
     final_url = url + "/set?resourceUrl=https://symbiote.nextworks.it/rap/Lights('" + actuator_id + "')&platformId=" + platform_id;
 
