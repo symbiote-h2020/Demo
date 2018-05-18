@@ -17,7 +17,8 @@ var websockets_connection_error = 0;
 var actuator_current_value = 0;
 
 var symbioteUrl = "https://symbiote-dev.man.poznan.pl"
-var symbioteClientUrl = "http://symbiote-dev.man.poznan.pl:8777"
+var symbioteClientUrl = "https://symbiote-dev.man.poznan.pl:8777"
+// var symbioteClientUrl = "http://localhost:8777"
 
 subscribedResources = Array();
 
@@ -171,7 +172,6 @@ function handleClickRow(e) {
   type = e.target.parentNode.getAttribute('type');
 
   if (type == 'Actuator'){
-  console.log("actuator")
    actuator_id = e.target.parentNode.getAttribute('id');
    actuator_name = e.target.parentNode.getAttribute('identification');
    actuator_platform_id = e.target.parentNode.getAttribute('platform_id');
@@ -258,7 +258,8 @@ function parseSensor(data) {
   var locationName = data.locationName.substring(data.locationName.lastIndexOf("/") + 1)
 
   for (var i = 0; i < data.observedProperties.length; i++) {
-    data.observedProperties[i] = data.observedProperties[i].substring(data.observedProperties[i].lastIndexOf("/") + 1)
+    // data.observedProperties[i] = data.observedProperties[i].substring(data.observedProperties[i].lastIndexOf("/") + 1)
+    data.observedProperties[i] = data.observedProperties[i]['name']
   }
 
   for (var i = 0; i < data.resourceType.length; i++) {
@@ -368,7 +369,6 @@ function getSensors() {
     dataType: "json",
     cache: false,
     success: function(data) {
-      //console.log(data);
       if (data.body.length > 0) {
         search = [];
 
@@ -1199,8 +1199,7 @@ function sendActuation(actuator_id, type, event, url, platform_id) {
 
     final_url = url + "/set?resourceUrl=https://symbiote.nextworks.it/rap/Curtains('" + actuator_id + "')&platformId=" + platform_id;
   }
-  console.log(final_url);
-  console.log(JSON.stringify(act_body));
+
   $.ajax({
     url: final_url,
     data: JSON.stringify(act_body),
@@ -1253,7 +1252,6 @@ function sensors(e, authorization_token) {
       var device_url = data.body[e.target.parentNode.id];
       //device_url = device_url + "/Observations&platformId=" + platform_id;
       device_url = device_url + "/Observations";
-      console.log(device_url);
 
       var name = e.target.parentNode.getAttribute('identification');
 
@@ -1351,8 +1349,6 @@ function sensors(e, authorization_token) {
                   $("#selectBox").append('<option value="' + observedProperty + '">' + observedProperty + '</option>');
                 }
 
-                //console.log(graphDict);
-
                 if (samplingTime != "NA")
                   observationTime = samplingTime.split('T')[0] + ', ' + samplingTime.split('T')[1].split('Z')[0].split('.')[0];
                 else
@@ -1385,7 +1381,6 @@ function sensors(e, authorization_token) {
       }
     },
     error: function(data) {
-      //console.log(data)
       $("#loading").hide();
       // Error code goes here.
       document.getElementById('errorLabel').innerHTML = 'It was not possible to get resource historical data. Please try again.'
