@@ -17,7 +17,7 @@ var websockets_connection_error = 0;
 var actuator_current_value = 0;
 
 var symbioteUrl = "https://symbiote-dev.man.poznan.pl"
-var symbioteClientUrl = "https://symbiote-dev.man.poznan.pl:8777"
+var symbioteClientUrl = "https://symbiote-open.man.poznan.pl:8777"
 // var symbioteClientUrl = "http://localhost:8777"
 
 subscribedResources = Array();
@@ -179,6 +179,9 @@ function handleClickRow(e) {
   actuators(e, description, actuator_id, actuator_name, actuator_platform_id);
   }
   if (type == 'StationarySensor'){
+    sensors(e, authorization_token);
+  }
+  if (type == 'StationarySensor,Actuator'){
     sensors(e, authorization_token);
   }
 }
@@ -1232,7 +1235,8 @@ function sensors(e, authorization_token) {
 
   var form = new FormData();
   form.append("resourceId", e.target.parentNode.id);
-  form.append("platformId", platform_id);
+  // form.append("platformId", platform_id);
+  form.append("platformId", "SymbIoTe_Core_AAM");
 
   $("#loading").show();
 
@@ -1272,8 +1276,9 @@ function sensors(e, authorization_token) {
         form.append("platformId", platform_id);
 
         // Get the historical data for the clicked resource (using url returned by the firs request and the specific token for the pretended platform that the resource belogns)
+        // url: symbioteClientUrl + "/observations_with_home_token?resourceUrl=" + device_url + "&platformId=" + platform_id,
         $.ajax({
-          url: symbioteClientUrl + "/observations_with_home_token?resourceUrl=" + device_url + "&platformId=" + platform_id,
+          url: symbioteClientUrl + "/observations_with_foreign_token?resourceUrl=" + device_url + "&homePlatformId=SymbIoTe_Core_AAM&federatedPlatformId=" + platform_id,
           type: "POST",
           contentType: "application/json",
           cache: false,
@@ -1336,7 +1341,7 @@ function sensors(e, authorization_token) {
                 else
                   var unit = "NA"
 
-                if (data[i]['obsValues'][ov]['value'])
+                if (data[i]['obsValues'][ov]['value'] || data[i]['obsValues'][ov]['value'] === 0)
                   var measurementValue = data[i]['obsValues'][ov]['value']
                 else
                   var measurementValue = "NA"
