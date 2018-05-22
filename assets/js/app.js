@@ -1284,8 +1284,17 @@ function sensors(e, authorization_token) {
           cache: false,
           processData: false,
           contentType: false,
-          success: function(data) {
+          success: function(data, textStatus, xhr) {
+            if (xhr.status == 204) {
+              $("#loading").hide();
+              // Error code goes here.
+              document.getElementById('errorModalTitle').innerHTML = 'Something went wrong <p></p>'
+              document.getElementById('errorModalClose').style.display = 'initial';
 
+              document.getElementById('errorLabel').innerHTML = 'It was not possible to get resource historical data. Please try again.'
+              $('#errorModal').modal('show');
+            }
+            
             if (subscribedResources.indexOf(click_resource_id) != -1)
               document.getElementById('subscribeResource').innerHTML = "Unsubscribe";
             else
