@@ -184,6 +184,9 @@ function handleClickRow(e) {
   if (type == 'StationarySensor,Actuator'){
     sensors(e, authorization_token);
   }
+  if (type == 'MobileSensor'){
+    sensors(e, authorization_token);
+  }
 }
 
 // Remove data (sensors) from previous search
