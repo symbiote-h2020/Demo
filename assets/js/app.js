@@ -1003,7 +1003,6 @@ function websocketsON(websocket, platform_id, platform_url) {
 
 function actuators(e, description, actuator_id, actuator_name, actuator_platform_id) {
 
-  // var row_url = symbioteUrl + ":8100/coreInterface/v1/resourceUrls?id=" + actuator_id;
   var row_url = symbioteClientUrl + "/get_resource_url/";
 
   var platform_id = e.target.parentNode.getAttribute('platform_id');
@@ -1119,7 +1118,7 @@ function actuators(e, description, actuator_id, actuator_name, actuator_platform
   document.getElementById('actuator_explanation').innerHTML = '';
 
 
-  if (description == 1) {
+  if (description == 'switch') {
     document.getElementById('actuator_explanation').innerHTML = 'This actuator contains a light that can be turned on/off. <p></p>Use the switch to turn on/off the light of this actuator and the press "Actuate" to send the action.';
     document.getElementById('light_switch').style.display = 'block';
 
@@ -1204,25 +1203,33 @@ function sendActuation(actuator_id, type, event, url, platform_id) {
       //'a': Math.floor(a_value * 100).toString()
     }
 
-    var act_body = {'RGBCapabilitys': [act_data]};
-    final_url = url + "/set?resourceUrl=https://symbiote.nextworks.it/rap/Lights('" + actuator_id + "')&platformId=" + platform_id;
+    var act_body = {'RGBCapability': [act_data]};
+    console.log(act_body)
+    final_url = url + "/set?resourceUrl=https://nr2.tel.fer.hr/rap/Lights('" + actuator_id + "')&platformId=" + platform_id;
 
   } else if (type == 'dimmer') { // Dimmer 
 
     act_data = {
       'level': actuator_current_value
     }
-    var act_body = {'DimmerCapabilitys': [act_data]};
+    var act_body = {'DimmerCapability': [act_data]};
 
-   final_url = url + "/set?resourceUrl=https://symbiote.nextworks.it/rap/Lights('" + actuator_id + "')&platformId=" + platform_id;
+   final_url = url + "/set?resourceUrl=https://nr2.tel.fer.hr/rap/Lights('" + actuator_id + "')&platformId=" + platform_id;
 
+  } else if (type == 'switch') { // Switch
+    act_data = {
+      'on': actuator_current_value
+    }
+    var act_body = {'OnOffCapability': [act_data]};
+
+    final_url = url + "/set?resourceUrl=https://nr2.tel.fer.hr/rap/Lights('" + actuator_id + "')&platformId=" + platform_id;
   } else { //Curtain
     act_data = {
       'position': actuator_current_value
     }
-    var act_body = {'SetPositionCapabilitys': [act_data]};
+    var act_body = {'SetPositionCapability': [act_data]};
 
-    final_url = url + "/set?resourceUrl=https://symbiote.nextworks.it/rap/Curtains('" + actuator_id + "')&platformId=" + platform_id;
+    final_url = url + "/set?resourceUrl=https://nr2.tel.fer.hr/rap/Curtains('" + actuator_id + "')&platformId=" + platform_id;
   }
 
   $.ajax({
