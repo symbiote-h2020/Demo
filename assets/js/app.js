@@ -1009,7 +1009,8 @@ function actuators(e, description, actuator_id, actuator_name, actuator_platform
   
   var form = new FormData();
   form.append("resourceId", e.target.parentNode.id);
-  form.append("platformId", platform_id);
+  form.append("platformId", "SymbIoTe_Core_AAM");
+  //form.append("platformId", platform_id);
 
   $("#loading").show();
 
